@@ -1,4 +1,4 @@
-package categorycontroller
+package financialaccountcontroller
 
 import (
 	"context"
@@ -8,54 +8,65 @@ import (
 	"finance/internal/helpers/getidpath"
 	"finance/internal/helpers/response"
 	"finance/internal/http/httpx"
-	categoryrequest "finance/internal/http/request/category"
-	categoryresponse "finance/internal/http/response/category"
+	financialrequest "finance/internal/http/request/financial"
+	financialresponse "finance/internal/http/response/financial"
+	"finance/internal/logger"
 	"net/http"
 )
 
-type CategoryService interface {
-	GetAll(context.Context) ([]categoryresponse.CategoryResponse, error)
-	Create(context.Context, categoryrequest.CategoryRequest) (categoryresponse.CategoryResponse, error)
-	Update(context.Context, categoryrequest.CategoryRequest, int) (categoryresponse.CategoryResponse, error)
-	FindById(context.Context, int) (categoryresponse.CategoryResponse, error)
+type FinancialAccountService interface {
+	GetAll(context.Context) ([]financialresponse.FinancialAccountResponse, error)
+	Create(context.Context, financialrequest.FinancialAccountRequest) (financialresponse.FinancialAccountResponse, error)
+	Update(context.Context, financialrequest.FinancialAccountRequest, int) (financialresponse.FinancialAccountResponse, error)
+	FindById(context.Context, int) (financialresponse.FinancialAccountResponse, error)
 	Delete(context.Context, int) error
 	Active(context.Context, int) error
 }
 
-type CategoryController struct {
-	service CategoryService
+type FinancialAccountController struct {
+	service FinancialAccountService
 }
 
-func NewCategoryController(service CategoryService) *CategoryController {
-	return &CategoryController{
+func NewFinancialAccountController(service FinancialAccountService) *FinancialAccountController {
+	return &FinancialAccountController{
 		service: service,
 	}
 }
 
-func (c *CategoryController) GetAll(w http.ResponseWriter, r *http.Request) {
-	categories, err := c.service.GetAll(r.Context())
+func (f *FinancialAccountController) GetAll(w http.ResponseWriter, r *http.Request) {
+	financialAccounts, err := f.service.GetAll(r.Context())
 
 	if err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao retornar todas as categorias",
+			"Erro ao retornar todas as contas financeiras",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
-		"Todas as categorias",
-		map[string]any{"categories": categories},
+		"Todas as contas financeiras",
+		map[string]any{"financial_accounts": financialAccounts},
 	))
 }
 
-func (c *CategoryController) Create(w http.ResponseWriter, r *http.Request) {
-	var payLoad categoryrequest.CategoryRequest
+func (f *FinancialAccountController) Create(w http.ResponseWriter, r *http.Request) {
+	if r.Body == http.NoBody {
+		logger.General.Error.Println("Payload vazio")
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Dados ausentes",
+			map[string]any{},
+		))
+		return
+	}
+
+	var payload financialrequest.FinancialAccountRequest
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-	if err := decoder.Decode(&payLoad); err != nil {
+	if err := decoder.Decode(&payload); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",
 			httpx.DecodeErrorMessage(err),
@@ -63,7 +74,7 @@ func (c *CategoryController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := c.service.Create(r.Context(), payLoad)
+	financialAccount, err := f.service.Create(r.Context(), payload)
 
 	if err != nil {
 		var validationErr *apperrors.ValidationError
@@ -77,20 +88,30 @@ func (c *CategoryController) Create(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao cadastrar a categoria",
+			"Erro ao cadastrar a conta financeira",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
 	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
-		"Categoria cadastrada com sucesso!",
-		map[string]any{"category": category},
+		"Conta financeira cadastrada com sucesso!",
+		map[string]any{"financial_account": financialAccount},
 	))
 }
 
-func (c *CategoryController) Update(w http.ResponseWriter, r *http.Request) {
-	var payLoad categoryrequest.CategoryRequest
+func (f *FinancialAccountController) Update(w http.ResponseWriter, r *http.Request) {
+	if r.Body == http.NoBody {
+		logger.General.Error.Println("Payload vazio")
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Dados ausentes",
+			map[string]any{},
+		))
+		return
+	}
+
+	var payLoad financialrequest.FinancialAccountRequest
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -98,48 +119,11 @@ func (c *CategoryController) Update(w http.ResponseWriter, r *http.Request) {
 	if err := decoder.Decode(&payLoad); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",
-			httpx.DecodeErrorMessage(err),
-		))
-		return
-	}
-
-	id, err := getidpath.GetIdPath(r)
-
-	if err != nil {
-		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao ler o identificador da categoria",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
-	category, err := c.service.Update(r.Context(), payLoad, id)
-
-	if err != nil {
-		var validationErr *apperrors.ValidationError
-
-		if errors.As(err, &validationErr) {
-			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
-				"Erro de validação",
-				validationErr.Errors,
-			))
-			return
-		}
-
-		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao alterar a categoria",
-			map[string]any{"error": err.Error()},
-		))
-		return
-	}
-
-	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
-		"Categoria alterada com sucesso!",
-		map[string]any{"category": category},
-	))
-}
-
-func (c *CategoryController) FindById(w http.ResponseWriter, r *http.Request) {
 	id, err := getidpath.GetIdPath(r)
 
 	if err != nil {
@@ -150,32 +134,68 @@ func (c *CategoryController) FindById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := c.service.FindById(r.Context(), id)
+	financialAccount, err := f.service.Update(r.Context(), payLoad, id)
 
 	if err != nil {
+		var validationErr *apperrors.ValidationError
 
+		if errors.As(err, &validationErr) {
+			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
+				"Erro de validação",
+				validationErr.Errors,
+			))
+			return
+		}
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao alterar a conta financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
+		"Conta financeira alterada com sucesso!",
+		map[string]any{"financial_account": financialAccount},
+	))
+}
+
+func (f *FinancialAccountController) FindById(w http.ResponseWriter, r *http.Request) {
+	id, err := getidpath.GetIdPath(r)
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler o identificador da conta financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	financialAccount, err := f.service.FindById(r.Context(), id)
+
+	if err != nil {
 		if err == apperrors.ErrNotFound {
 			response.WriteJSON(w, http.StatusNotFound, response.ErrorResponse(
-				"Categoria não localizada",
+				"Conta financeira não localizada",
 				map[string]any{},
 			))
 			return
 		}
 
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao localizar a categoria",
+			"Erro ao localizar a conta financeira",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
-		"Categoria localizada com sucesso!",
-		map[string]any{"category": category},
+		"Conta financeira localizada com sucesso!",
+		map[string]any{"financial_account": financialAccount},
 	))
 }
 
-func (c *CategoryController) Delete(w http.ResponseWriter, r *http.Request) {
+func (f *FinancialAccountController) Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := getidpath.GetIdPath(r)
 
 	if err != nil {
@@ -186,21 +206,21 @@ func (c *CategoryController) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.service.Delete(r.Context(), id); err != nil {
+	if err := f.service.Delete(r.Context(), id); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao desativar a categoria",
+			"Erro ao desativar a conta financeira",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
-		"Categoria desativada com sucesso!",
+		"Conta financeira desativada com sucesso!",
 		map[string]any{},
 	))
 }
 
-func (c *CategoryController) Active(w http.ResponseWriter, r *http.Request) {
+func (f *FinancialAccountController) Active(w http.ResponseWriter, r *http.Request) {
 	id, err := getidpath.GetIdPath(r)
 
 	if err != nil {
@@ -211,16 +231,16 @@ func (c *CategoryController) Active(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.service.Active(r.Context(), id); err != nil {
+	if err := f.service.Active(r.Context(), id); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao ativar a categoria",
+			"Erro ao ativar a conta financeira",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
-		"Categoria ativada com sucesso!",
+		"Conta financeira ativada com sucesso!",
 		map[string]any{},
 	))
 }

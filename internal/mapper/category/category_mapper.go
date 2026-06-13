@@ -7,8 +7,12 @@ import (
 
 func ToCategoryResponse(c categorymodel.CategoryModel) categoryresponse.CategoryResponse {
 	return categoryresponse.CategoryResponse{
-		Id:   c.Id,
-		Name: c.Name,
+		Id:        c.Id,
+		ParentId:  c.ParentId,
+		Name:      c.Name,
+		Type:      c.Type,
+		CreatedAt: c.CreatedAt,
+		UpdatedAt: c.UpdatedAt,
 	}
 }
 

@@ -1,6 +1,7 @@
 .env
 .env.local
 /internal/database/schema
-/log
 /internal/routes/middleware
+/jsons
+/log
 *.md

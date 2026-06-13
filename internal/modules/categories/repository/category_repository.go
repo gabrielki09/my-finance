@@ -5,6 +5,8 @@ import (
 	"errors"
 	"finance/internal/apperrors"
 	constantsdbcode "finance/internal/constants/db"
+	transactionhelper "finance/internal/helpers/transaction"
+	categoryrequest "finance/internal/http/request/category"
 	"finance/internal/logger"
 	categorymodel "finance/models/category"
 
@@ -30,11 +32,12 @@ func (c *CategoryRepository) GetAll(ctx context.Context) ([]categorymodel.Catego
 		ctx,
 		`
 			SELECT 
-				id::text,
+				id,
+				parent_id,
 				name,
+				type,
 				created_at,
-				updated_at,
-				deleted_at
+				updated_at
 			FROM
 				categories
 			WHERE	
@@ -54,10 +57,11 @@ func (c *CategoryRepository) GetAll(ctx context.Context) ([]categorymodel.Catego
 
 		if err := categoriesRows.Scan(
 			&category.Id,
+			&category.ParentId,
 			&category.Name,
+			&category.Type,
 			&category.CreatedAt,
 			&category.UpdatedAt,
-			&category.DeletedAt,
 		); err != nil {
 			logger.General.Error.Println("Erro ao ler os dados do select:", err)
 			return []categorymodel.CategoryModel{}, err
@@ -75,31 +79,34 @@ func (c *CategoryRepository) GetAll(ctx context.Context) ([]categorymodel.Catego
 	return categories, nil
 }
 
-func (c *CategoryRepository) Create(ctx context.Context, model categorymodel.CategoryModel) (categorymodel.CategoryModel, error) {
+func (c *CategoryRepository) Create(ctx context.Context, model categoryrequest.CategoryRequest) (category categorymodel.CategoryModel, err error) {
 	var pgErr *pgconn.PgError
-	var category categorymodel.CategoryModel
 
-	err := c.db.QueryRow(
+	err = c.db.QueryRow(
 		ctx,
 		`
 			INSERT INTO categories 
-				(name)
+				(parent_id, name, type)
 			VALUES
-				($1)
+				($1, $2, $3)
 			RETURNING
-				id::text,
+				id,
+				parent_id,
 				name,
+				type,
 				created_at,
-				updated_at,
-				deleted_at
+				updated_at
 		`,
+		model.ParentId,
 		model.Name,
+		model.Type,
 	).Scan(
 		&category.Id,
+		&category.ParentId,
 		&category.Name,
+		&category.Type,
 		&category.CreatedAt,
 		&category.UpdatedAt,
-		&category.DeletedAt,
 	)
 
 	if err != nil {
@@ -111,42 +118,44 @@ func (c *CategoryRepository) Create(ctx context.Context, model categorymodel.Cat
 				logger.General.Error.Println(pgErr)
 				logger.General.Error.Println(apperrors.ErrUniqueConstraint.Error())
 
-				return categorymodel.CategoryModel{}, apperrors.ErrUniqueConstraint
+				return category, apperrors.ErrUniqueConstraint
 			}
 
 		}
 
-		return categorymodel.CategoryModel{}, err
+		return category, err
 	}
 
-	return category, nil
+	return category, err
 }
 
-func (c *CategoryRepository) FindById(ctx context.Context, id string) (categorymodel.CategoryModel, error) {
+func (c *CategoryRepository) FindById(ctx context.Context, categoryId int) (categorymodel.CategoryModel, error) {
 	var category categorymodel.CategoryModel
 
 	err := c.db.QueryRow(
 		ctx,
 		`
 			SELECT 
-				id::text,
+				id,
+				parent_id,
 				name,
+				type,
 				created_at,
-				updated_at,
-				deleted_at
+				updated_at
 			FROM
 				categories
 			WHERE
 		 		id = $1 AND
 				deleted_at IS NULL
 		`,
-		id,
+		categoryId,
 	).Scan(
 		&category.Id,
+		&category.ParentId,
 		&category.Name,
+		&category.Type,
 		&category.CreatedAt,
 		&category.UpdatedAt,
-		&category.DeletedAt,
 	)
 
 	if err != nil {
@@ -163,41 +172,54 @@ func (c *CategoryRepository) FindById(ctx context.Context, id string) (categorym
 	return category, nil
 }
 
-func (c *CategoryRepository) Update(ctx context.Context, category categorymodel.CategoryModel) (categorymodel.CategoryModel, error) {
-	if err := c.db.QueryRow(
+func (c *CategoryRepository) Update(ctx context.Context, payload categoryrequest.CategoryRequest, categoryId int) (category categorymodel.CategoryModel, err error) {
+	err = transactionhelper.WithTransaction(
 		ctx,
-		`
-			UPDATE
-				categories
-			SET
-				name = $2,
-				updated_at = now()
-			WHERE
-				id = $1
-			RETURNING
-				id::text,
-				name,
-				created_at,
-				updated_at,
-				deleted_at
-		`,
-		category.Id,
-		category.Name,
-	).Scan(
-		&category.Id,
-		&category.Name,
-		&category.CreatedAt,
-		&category.UpdatedAt,
-		&category.DeletedAt,
-	); err != nil {
-		logger.General.Error.Println("Erro ao alterar os dados da categoria:", err)
-		return categorymodel.CategoryModel{}, err
-	}
+		c.db,
+		func(tx pgx.Tx) error {
+			if err := c.db.QueryRow(
+				ctx,
+				`
+					UPDATE
+						categories
+					SET
+						parent_id = $2,
+						name = $3,
+						type = $4,
+						updated_at = now()
+					WHERE
+						id = $1
+					RETURNING
+						id,
+						parent_id,
+						name,
+						type,
+						created_at,
+						updated_at
+				`,
+				categoryId,
+				payload.ParentId,
+				payload.Name,
+				payload.Type,
+			).Scan(
+				&category.Id,
+				&category.ParentId,
+				&category.Name,
+				&category.Type,
+				&category.CreatedAt,
+				&category.UpdatedAt,
+			); err != nil {
+				logger.General.Error.Println("Erro ao alterar os dados da categoria:", err)
+				return err
+			}
 
-	return category, nil
+			return nil
+		})
+
+	return category, err
 }
 
-func (c *CategoryRepository) Delete(ctx context.Context, id string) error {
+func (c *CategoryRepository) Delete(ctx context.Context, categoryId int) error {
 	if _, err := c.db.Exec(
 		ctx,
 		`
@@ -209,7 +231,7 @@ func (c *CategoryRepository) Delete(ctx context.Context, id string) error {
 			WHERE
 				id = $1	
 		`,
-		id,
+		categoryId,
 	); err != nil {
 		logger.General.Error.Println("Erro ao deletar os a categoria:", err)
 		return err
@@ -218,7 +240,7 @@ func (c *CategoryRepository) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (c *CategoryRepository) Active(ctx context.Context, id string) error {
+func (c *CategoryRepository) Active(ctx context.Context, categoryId int) error {
 	if _, err := c.db.Exec(
 		ctx,
 		`
@@ -230,7 +252,7 @@ func (c *CategoryRepository) Active(ctx context.Context, id string) error {
 			WHERE
 				id = $1
 		`,
-		id,
+		categoryId,
 	); err != nil {
 		logger.General.Error.Println("Erro ao ativar a categoria:", err)
 		return err

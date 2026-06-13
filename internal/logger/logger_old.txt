@@ -3,6 +3,7 @@ package logger
 import (
 	"log"
 	"os"
+	"path/filepath"
 )
 
 type LoggerGroup struct {
@@ -36,14 +37,15 @@ func newLogger(prefix, fileName string) *log.Logger {
 		return log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	logDir := "log"
+	filePath := filepath.Join("log", fileName)
+	logDir := filepath.Dir(filePath)
 
-	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-		log.Fatal("Erro ao criar o diretório de log: ", err)
+	if err := os.MkdirAll(logDir, 0755); err != nil {
+		log.Fatal("Erro ao criar o diretório de log:", err)
 	}
 
 	file, err := os.OpenFile(
-		logDir+"/"+fileName,
+		filePath,
 		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
 		0644,
 	)

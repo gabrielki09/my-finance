@@ -1,43 +1,28 @@
 services:
-  frontend:
-    build:
-      context: ./app
-      dockerfile: ../app/docker/dockerfile.dev
-    container_name: amodrinks_app
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./app:/app
-      - /app/node_modules
-    env_file:
-      - ./app/.env
-    environment:
-      CHOKIDAR_USEPOLLING: "true"
-
   backend:
     build: 
-      context: ./api
-      dockerfile: ../api/docker/dockerfile.dev
-    container_name: amodrinks_api
+      context: ./
+      dockerfile: ./docker/dockerfile.dev
+    container_name: finance_api
     ports:
-      - "8000:8000"
+      - "3000:3000"
     volumes:
       - ./api:/app
     env_file:
-      - ./api/.env
+      - ./.env
 
   postgres:
     image: postgres:18-alpine
-    container_name: amodrinks_postgres
+    container_name: finance_postgres
     restart: always
     environment:
-      POSTGRES_DB: amo_drinks
-      POSTGRES_USER: amodrinks
+      POSTGRES_DB: finance_db
+      POSTGRES_USER: finance
       POSTGRES_PASSWORD: masterkey
     ports:
-      - "5433:5432"
+      - "5440:5432"
     volumes:
-      - amodrinks_postgres_data:/var/lib/postgresql
+      - finance_postgres_data:/var/lib/postgresql
 
 volumes:
-  amodrinks_postgres_data:
+  finance_postgres_data:

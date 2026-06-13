@@ -2,6 +2,7 @@ package routes
 
 import (
 	categoryesroutes "finance/internal/modules/categories/routes"
+	financialaccountroutes "finance/internal/modules/financial_accounts/routes"
 	"finance/internal/routes/cors"
 	"log"
 	"net/http"
@@ -21,8 +22,9 @@ func StartServer(db *pgxpool.Pool) {
 	}
 
 	categoryesroutes.RegisterCategoriesRoutes(publicMux, db)
+	financialaccountroutes.RegisterFinancialAccountRoutes(publicMux, db)
 
-	rootMux.Handle("/api/auth/", http.StripPrefix("/api/auth", publicMux))
+	rootMux.Handle("/api/", http.StripPrefix("/api", publicMux))
 
 	handlerWithCORS := cors.WithCORS(rootMux)
 
