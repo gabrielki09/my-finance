@@ -4,6 +4,7 @@ import (
 	financialaccountcontroller "finance/internal/modules/financial_accounts/controller"
 	financialaccountrepository "finance/internal/modules/financial_accounts/repository"
 	financialaccountservice "finance/internal/modules/financial_accounts/services"
+	financialaccountvalidator "finance/internal/modules/financial_accounts/validator"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,7 +12,9 @@ import (
 
 func RegisterFinancialAccountRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	repo := financialaccountrepository.NewFinancialAccountRepository(db)
-	service := financialaccountservice.NewFinancialAccountService(repo)
+	validator := financialaccountvalidator.NewFinancialAccountValidatorValidator(repo)
+
+	service := financialaccountservice.NewFinancialAccountService(repo, validator)
 	controller := financialaccountcontroller.NewFinancialAccountController(service)
 
 	r.HandleFunc("GET /financial-account", controller.GetAll)

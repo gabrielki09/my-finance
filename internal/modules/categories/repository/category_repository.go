@@ -318,6 +318,7 @@ func (c *CategoryRepository) VerifyExistsCategoryName(ctx context.Context, categ
 	); err != nil {
 
 		if errors.Is(err, pgx.ErrNoRows) {
+			logger.General.Info.Println("A categoria não existe")
 			return nil, nil
 
 		}

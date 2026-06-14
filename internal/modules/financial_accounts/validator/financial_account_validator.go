@@ -4,7 +4,9 @@ import (
 	"context"
 	"finance/internal/apperrors"
 	financialrequest "finance/internal/http/request/financial"
+	"finance/internal/logger"
 	financialmodel "finance/models/financial"
+	"fmt"
 )
 
 type FinancialAccountRepository interface {
@@ -23,6 +25,17 @@ func NewFinancialAccountValidatorValidator(financialAccountRepository FinancialA
 
 func (v *FinancialAccountValidator) ValidatePayload(ctx context.Context, payload financialrequest.FinancialAccountRequest) error {
 	errors := apperrors.ValidationErrors{}
+
+	financialAccountByName, err := v.repo.VerifyExistsFinancialAccountName(ctx, payload.Name)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao conferir se a conta financeira já existe pelo nome: ", err)
+		return err
+	}
+
+	if financialAccountByName != nil {
+		errors["name"] = append(errors["name"], fmt.Sprintf("A conta financeira %s já existe, ID %d.", payload.Name, financialAccountByName.Id))
+	}
 
 	return nil
 }

@@ -261,3 +261,37 @@ func (f *FinancialAccountRepository) Active(ctx context.Context, financialAccoun
 
 	return nil
 }
+
+func (f *FinancialAccountRepository) VerifyExistsFinancialAccountName(ctx context.Context, financialAccountName string) (*financialmodel.FinancialAccountModel, error) {
+	var financialAccount financialmodel.FinancialAccountModel
+
+	err := f.db.QueryRow(
+		ctx,
+		`
+			SELECT 
+				id,
+				name
+			FROM
+				financial_accounts
+			WHERE
+		 		name = $1
+		`,
+		financialAccountName,
+	).Scan(
+		financialAccount.Id,
+		financialAccount.Name,
+	)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			logger.General.Info.Println("A conta financeira não existe")
+			return nil, nil
+		}
+
+		return nil, err
+	}
+
+	return &financialAccount, nil
+}

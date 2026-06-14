@@ -7,6 +7,7 @@ import (
 	financialresponse "finance/internal/http/response/financial"
 	"finance/internal/logger"
 	financialmapper "finance/internal/mapper/financial"
+	financialaccountvalidator "finance/internal/modules/financial_accounts/validator"
 	financialmodel "finance/models/financial"
 )
 
@@ -21,11 +22,13 @@ type FinancialAccountRepository interface {
 
 type FinancialAccountService struct {
 	repository FinancialAccountRepository
+	validator  *financialaccountvalidator.FinancialAccountValidator
 }
 
-func NewFinancialAccountService(repository FinancialAccountRepository) *FinancialAccountService {
+func NewFinancialAccountService(repository FinancialAccountRepository, validator *financialaccountvalidator.FinancialAccountValidator) *FinancialAccountService {
 	return &FinancialAccountService{
 		repository: repository,
+		validator:  validator,
 	}
 }
 
@@ -48,6 +51,10 @@ func (f *FinancialAccountService) Create(ctx context.Context, payload financialr
 		return financialresponse.FinancialAccountResponse{}, apperrors.NewValidationError(validation)
 	}
 
+	if err := f.validator.ValidatePayload(ctx, payload); err != nil {
+		return financialresponse.FinancialAccountResponse{}, err
+	}
+
 	financialAccount, err := f.repository.Create(ctx, payload)
 
 	if err != nil {
@@ -64,6 +71,10 @@ func (f *FinancialAccountService) Update(ctx context.Context, payload financialr
 
 	if len(validation) > 0 {
 		return financialresponse.FinancialAccountResponse{}, apperrors.NewValidationError(validation)
+	}
+
+	if err := f.validator.ValidatePayload(ctx, payload); err != nil {
+		return financialresponse.FinancialAccountResponse{}, err
 	}
 
 	financialAccount, err := f.repository.Update(ctx, payload, financialAccountId)
