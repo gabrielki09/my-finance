@@ -19,38 +19,14 @@ func Init() {
 }
 
 func newLoggerGroup() *LoggerGroup {
-	logFileName := "general.log"
-
 	return &LoggerGroup{
-		General: newLogger("General Logger:\t", logFileName),
-		Info:    newLogger("Info Logger:\t", logFileName),
-		Error:   newLogger("Error Logger:\t", logFileName),
-		Success: newLogger("Success Logger:\t", logFileName),
+		General: newLogger("General Logger:\t"),
+		Info:    newLogger("Info Logger:\t"),
+		Error:   newLogger("Error Logger:\t"),
+		Success: newLogger("Success Logger:\t"),
 	}
 }
 
-func newLogger(prefix, fileName string) *log.Logger {
-	appEnv := os.Getenv("APP_ENV")
-
-	if appEnv != "dev" {
-		return log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lshortfile)
-	}
-
-	logDir := "log"
-
-	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-		log.Fatal("Erro ao criar o diretório de log: ", err)
-	}
-
-	file, err := os.OpenFile(
-		logDir+"/"+fileName,
-		os.O_CREATE|os.O_WRONLY|os.O_APPEND,
-		0644,
-	)
-
-	if err != nil {
-		log.Fatal("Erro ao abrir o arquivo de log:", err)
-	}
-
-	return log.New(file, prefix, log.Ldate|log.Ltime|log.Lshortfile)
+func newLogger(prefix string) *log.Logger {
+	return log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lshortfile)
 }

@@ -2,12 +2,12 @@ services:
   backend:
     build: 
       context: ./
-      dockerfile: ./docker/dockerfile.dev
+      dockerfile: ./dockerfile.dev
     container_name: finance_api
     ports:
       - "3000:3000"
     volumes:
-      - ./api:/app
+      - ./:/app
     env_file:
       - ./.env
 

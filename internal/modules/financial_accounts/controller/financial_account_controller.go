@@ -10,7 +10,6 @@ import (
 	"finance/internal/http/httpx"
 	financialrequest "finance/internal/http/request/financial"
 	financialresponse "finance/internal/http/response/financial"
-	"finance/internal/logger"
 	"net/http"
 )
 
@@ -51,16 +50,6 @@ func (f *FinancialAccountController) GetAll(w http.ResponseWriter, r *http.Reque
 }
 
 func (f *FinancialAccountController) Create(w http.ResponseWriter, r *http.Request) {
-	if r.Body == http.NoBody {
-		logger.General.Error.Println("Payload vazio")
-
-		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Dados ausentes",
-			map[string]any{},
-		))
-		return
-	}
-
 	var payload financialrequest.FinancialAccountRequest
 
 	decoder := json.NewDecoder(r.Body)
@@ -101,25 +90,15 @@ func (f *FinancialAccountController) Create(w http.ResponseWriter, r *http.Reque
 }
 
 func (f *FinancialAccountController) Update(w http.ResponseWriter, r *http.Request) {
-	if r.Body == http.NoBody {
-		logger.General.Error.Println("Payload vazio")
-
-		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Dados ausentes",
-			map[string]any{},
-		))
-		return
-	}
-
-	var payLoad financialrequest.FinancialAccountRequest
+	var payload financialrequest.FinancialAccountRequest
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-	if err := decoder.Decode(&payLoad); err != nil {
+	if err := decoder.Decode(&payload); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",
-			map[string]any{"error": err.Error()},
+			httpx.DecodeErrorMessage(err),
 		))
 		return
 	}
@@ -134,7 +113,7 @@ func (f *FinancialAccountController) Update(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	financialAccount, err := f.service.Update(r.Context(), payLoad, id)
+	financialAccount, err := f.service.Update(r.Context(), payload, id)
 
 	if err != nil {
 		var validationErr *apperrors.ValidationError

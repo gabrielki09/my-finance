@@ -7,13 +7,13 @@ import (
 
 type ErrorResponseData struct {
 	Message string `json:"message"`
-	Status  bool   `json:"status"`
+	Success bool   `json:"success"`
 	Error   any    `json:"error"`
 }
 
 type SuccessResponseData struct {
 	Message string `json:"message"`
-	Status  bool   `json:"status"`
+	Success bool   `json:"success"`
 	Data    any    `json:"data"`
 }
 
@@ -25,7 +25,7 @@ func WriteJSON(w http.ResponseWriter, status int, body any) {
 
 func ErrorResponse(message string, data any) ErrorResponseData {
 	return ErrorResponseData{
-		Status:  false,
+		Success: false,
 		Message: message,
 		Error:   data,
 	}
@@ -33,7 +33,7 @@ func ErrorResponse(message string, data any) ErrorResponseData {
 
 func SuccessResponse(message string, data any) SuccessResponseData {
 	return SuccessResponseData{
-		Status:  true,
+		Success: true,
 		Message: message,
 		Data:    data,
 	}

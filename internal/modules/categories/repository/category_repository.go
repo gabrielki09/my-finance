@@ -260,3 +260,70 @@ func (c *CategoryRepository) Active(ctx context.Context, categoryId int) error {
 
 	return nil
 }
+
+func (c *CategoryRepository) VerifyParentId(ctx context.Context, parentId int) (bool, error) {
+	logger.General.Info.Println("CategoryRepository - VerifyParentId called")
+
+	var exists bool
+
+	if err := c.db.QueryRow(
+		ctx,
+		`SELECT EXISTS 
+			( 
+			SELECT
+				id 
+			FROM
+				categories 
+			WHERE 
+				id = $1
+			ORDER BY 
+				id
+			DESC 
+				LIMIT 1
+			)
+		`,
+		parentId,
+	).Scan(&exists); err != nil {
+		logger.General.Error.Println("Erro ao conferir se a categoria pai existe:", err)
+		return false, err
+	}
+
+	if exists {
+		logger.General.Info.Println("A categoria pai existe")
+		return true, nil
+	}
+
+	logger.General.Info.Println("A categoria pai não existe")
+	return false, nil
+}
+
+func (c *CategoryRepository) VerifyExistsCategoryName(ctx context.Context, categoryName string) (*categorymodel.CategoryModel, error) {
+	var category categorymodel.CategoryModel
+
+	if err := c.db.QueryRow(
+		ctx,
+		`
+			SELECT
+				id,
+				name
+			FROM
+				categories
+			WHERE
+				name = $1
+		`,
+		categoryName,
+	).Scan(
+		&category.Id,
+		&category.Name,
+	); err != nil {
+
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+
+		}
+
+		return nil, err
+	}
+
+	return &category, nil
+}

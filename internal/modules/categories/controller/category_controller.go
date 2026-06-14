@@ -10,6 +10,7 @@ import (
 	"finance/internal/http/httpx"
 	categoryrequest "finance/internal/http/request/category"
 	categoryresponse "finance/internal/http/response/category"
+	"finance/internal/logger"
 	"net/http"
 )
 
@@ -33,6 +34,8 @@ func NewCategoryController(service CategoryService) *CategoryController {
 }
 
 func (c *CategoryController) GetAll(w http.ResponseWriter, r *http.Request) {
+	logger.General.Info.Println("CategoryController - GetAll")
+
 	categories, err := c.service.GetAll(r.Context())
 
 	if err != nil {
@@ -220,7 +223,7 @@ func (c *CategoryController) Active(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
-		"Categoria ativada com sucesso!",
+		"Operação realizada com sucesso.",
 		map[string]any{},
 	))
 }

@@ -96,7 +96,9 @@ func (f *FinancialAccountRepository) Create(ctx context.Context, model financial
 				name,
 				type,
 				initial_balance,
-				opened_at
+				opened_at,
+				created_at
+				updated_at
 		`,
 		model.Name,
 		model.Type,
@@ -108,6 +110,8 @@ func (f *FinancialAccountRepository) Create(ctx context.Context, model financial
 		&financialAccount.Type,
 		&financialAccount.InitialBalance,
 		&financialAccount.OpenedAt,
+		&financialAccount.CreatedAt,
+		&financialAccount.UpdatedAt,
 	)
 
 	if err != nil {

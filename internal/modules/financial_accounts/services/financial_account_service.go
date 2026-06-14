@@ -59,6 +59,7 @@ func (f *FinancialAccountService) Create(ctx context.Context, payload financialr
 }
 
 func (f *FinancialAccountService) Update(ctx context.Context, payload financialrequest.FinancialAccountRequest, financialAccountId int) (financialresponse.FinancialAccountResponse, error) {
+
 	validation := payload.ValidatePayload()
 
 	if len(validation) > 0 {

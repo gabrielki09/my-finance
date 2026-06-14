@@ -3,6 +3,7 @@ package categoryrequest
 import (
 	"finance/internal/apperrors"
 	mxl "finance/internal/constants/max_len"
+	"finance/internal/logger"
 	categorymodel "finance/models/category"
 	"fmt"
 	"strings"
@@ -29,6 +30,8 @@ func validateType(t categorymodel.CategoryTpyes) bool {
 }
 
 func (c CategoryRequest) ValidatePayload() apperrors.ValidationErrors {
+	logger.General.Info.Println("---- Vai validar o payload da categoria via request ----")
+
 	errors := apperrors.ValidationErrors{}
 
 	name := strings.TrimSpace(c.Name)
@@ -56,5 +59,6 @@ func (c CategoryRequest) ValidatePayload() apperrors.ValidationErrors {
 		}
 	}
 
+	logger.General.Info.Printf("---- Terminou de validar o payload da categoria, total de erros: %d ----", len(errors))
 	return errors
 }

@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"finance/internal/helpers/response"
 	categoryesroutes "finance/internal/modules/categories/routes"
 	financialaccountroutes "finance/internal/modules/financial_accounts/routes"
 	"finance/internal/routes/cors"
@@ -20,6 +21,13 @@ func StartServer(db *pgxpool.Pool) {
 	if port == "" {
 		port = "8000"
 	}
+
+	rootMux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
+		response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
+			"Api on",
+			map[string]any{},
+		))
+	})
 
 	categoryesroutes.RegisterCategoriesRoutes(publicMux, db)
 	financialaccountroutes.RegisterFinancialAccountRoutes(publicMux, db)

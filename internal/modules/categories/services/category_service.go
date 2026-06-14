@@ -7,6 +7,7 @@ import (
 	categoryresponse "finance/internal/http/response/category"
 	"finance/internal/logger"
 	categorymapper "finance/internal/mapper/category"
+	categoryvalidator "finance/internal/modules/categories/validator"
 	categorymodel "finance/models/category"
 )
 
@@ -21,11 +22,13 @@ type CategoryRepository interface {
 
 type CategoryService struct {
 	repository CategoryRepository
+	validator  *categoryvalidator.CategoryValidator
 }
 
-func NewCategoryService(repository CategoryRepository) *CategoryService {
+func NewCategoryService(repository CategoryRepository, validator *categoryvalidator.CategoryValidator) *CategoryService {
 	return &CategoryService{
 		repository: repository,
+		validator:  validator,
 	}
 }
 
@@ -41,10 +44,15 @@ func (s *CategoryService) GetAll(ctx context.Context) ([]categoryresponse.Catego
 }
 
 func (s *CategoryService) Create(ctx context.Context, payload categoryrequest.CategoryRequest) (categoryresponse.CategoryResponse, error) {
+
 	validation := payload.ValidatePayload()
 
 	if len(validation) > 0 {
 		return categoryresponse.CategoryResponse{}, apperrors.NewValidationError(validation)
+	}
+
+	if err := s.validator.ValidatePayload(ctx, payload); err != nil {
+		return categoryresponse.CategoryResponse{}, err
 	}
 
 	category, err := s.repository.Create(ctx, payload)
@@ -58,11 +66,16 @@ func (s *CategoryService) Create(ctx context.Context, payload categoryrequest.Ca
 }
 
 func (s *CategoryService) Update(ctx context.Context, payload categoryrequest.CategoryRequest, categoryId int) (categoryresponse.CategoryResponse, error) {
+
 	payload.Id = categoryId
 	validation := payload.ValidatePayload()
 
 	if len(validation) > 0 {
 		return categoryresponse.CategoryResponse{}, apperrors.NewValidationError(validation)
+	}
+
+	if err := s.validator.ValidatePayload(ctx, payload); err != nil {
+		return categoryresponse.CategoryResponse{}, err
 	}
 
 	category, err := s.repository.Update(ctx, payload, categoryId)

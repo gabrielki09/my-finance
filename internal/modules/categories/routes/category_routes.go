@@ -4,6 +4,7 @@ import (
 	categoriescontroller "finance/internal/modules/categories/controller"
 	categoriesrepository "finance/internal/modules/categories/repository"
 	categoriesservice "finance/internal/modules/categories/services"
+	categoryvalidator "finance/internal/modules/categories/validator"
 	"net/http"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -11,7 +12,9 @@ import (
 
 func RegisterCategoriesRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	repo := categoriesrepository.NewCategoryRepository(db)
-	service := categoriesservice.NewCategoryService(repo)
+	categoryValidator := categoryvalidator.NewCategoryValidator(repo)
+
+	service := categoriesservice.NewCategoryService(repo, categoryValidator)
 	controller := categoriescontroller.NewCategoryController(service)
 
 	r.HandleFunc("GET /categories", controller.GetAll)
