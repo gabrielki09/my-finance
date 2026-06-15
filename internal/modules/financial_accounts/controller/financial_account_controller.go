@@ -8,15 +8,15 @@ import (
 	"finance/internal/helpers/getidpath"
 	"finance/internal/helpers/response"
 	"finance/internal/http/httpx"
-	financialrequest "finance/internal/http/request/financial"
+	financialaccountrequest "finance/internal/http/request/financial/financial_account"
 	financialresponse "finance/internal/http/response/financial"
 	"net/http"
 )
 
 type FinancialAccountService interface {
 	GetAll(context.Context) ([]financialresponse.FinancialAccountResponse, error)
-	Create(context.Context, financialrequest.FinancialAccountRequest) (financialresponse.FinancialAccountResponse, error)
-	Update(context.Context, financialrequest.FinancialAccountRequest, int) (financialresponse.FinancialAccountResponse, error)
+	Create(context.Context, financialaccountrequest.FinancialAccountRequest) (financialresponse.FinancialAccountResponse, error)
+	Update(context.Context, financialaccountrequest.FinancialAccountRequest, int) (financialresponse.FinancialAccountResponse, error)
 	FindById(context.Context, int) (financialresponse.FinancialAccountResponse, error)
 	Delete(context.Context, int) error
 	Active(context.Context, int) error
@@ -50,7 +50,7 @@ func (f *FinancialAccountController) GetAll(w http.ResponseWriter, r *http.Reque
 }
 
 func (f *FinancialAccountController) Create(w http.ResponseWriter, r *http.Request) {
-	var payload financialrequest.FinancialAccountRequest
+	var payload financialaccountrequest.FinancialAccountRequest
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -90,7 +90,7 @@ func (f *FinancialAccountController) Create(w http.ResponseWriter, r *http.Reque
 }
 
 func (f *FinancialAccountController) Update(w http.ResponseWriter, r *http.Request) {
-	var payload financialrequest.FinancialAccountRequest
+	var payload financialaccountrequest.FinancialAccountRequest
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()

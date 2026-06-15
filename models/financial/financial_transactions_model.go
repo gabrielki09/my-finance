@@ -21,16 +21,16 @@ type FinancialTransactionsModel struct {
 	Id                    int
 	FinancialAccountId    int
 	CategoryId            int
-	ReversedTransactionId int
+	ReversedTransactionId *int
 	Description           string
 	MovementType          FinancialTransactionsMovementType
 	OperationType         FinancialTransactionsOperationType
 	Amount                float64
 	MovementDate          time.Time
 	ReferenceDate         time.Time
-	OriginType            string
-	OriginId              int
-	Idempotency_key       string
+	OriginType            *string
+	OriginId              *int
+	IdempotencyKey        string
 	CreatedAt             time.Time
 	CanceledAt            *time.Time
 }

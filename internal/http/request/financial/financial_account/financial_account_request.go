@@ -1,4 +1,4 @@
-package financialrequest
+package financialaccountrequest
 
 import (
 	"finance/internal/apperrors"

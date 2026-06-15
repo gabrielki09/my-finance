@@ -3,7 +3,7 @@ package financialaccountservice
 import (
 	"context"
 	"finance/internal/apperrors"
-	financialrequest "finance/internal/http/request/financial"
+	financialaccountrequest "finance/internal/http/request/financial/financial_account"
 	financialresponse "finance/internal/http/response/financial"
 	"finance/internal/logger"
 	financialmapper "finance/internal/mapper/financial"
@@ -13,8 +13,8 @@ import (
 
 type FinancialAccountRepository interface {
 	GetAll(r context.Context) ([]financialmodel.FinancialAccountModel, error)
-	Create(r context.Context, payload financialrequest.FinancialAccountRequest) (financialmodel.FinancialAccountModel, error)
-	Update(r context.Context, payload financialrequest.FinancialAccountRequest, financialAccountId int) (financialmodel.FinancialAccountModel, error)
+	Create(r context.Context, payload financialaccountrequest.FinancialAccountRequest) (financialmodel.FinancialAccountModel, error)
+	Update(r context.Context, payload financialaccountrequest.FinancialAccountRequest, financialAccountId int) (financialmodel.FinancialAccountModel, error)
 	FindById(r context.Context, financialAccountId int) (financialmodel.FinancialAccountModel, error)
 	Delete(r context.Context, financialAccountId int) error
 	Active(r context.Context, financialAccountId int) error
@@ -43,7 +43,7 @@ func (f *FinancialAccountService) GetAll(ctx context.Context) ([]financialrespon
 	return financialmapper.ToFinancialAccountResponseList(financialAccounts), nil
 }
 
-func (f *FinancialAccountService) Create(ctx context.Context, payload financialrequest.FinancialAccountRequest) (financialresponse.FinancialAccountResponse, error) {
+func (f *FinancialAccountService) Create(ctx context.Context, payload financialaccountrequest.FinancialAccountRequest) (financialresponse.FinancialAccountResponse, error) {
 
 	validation := payload.ValidatePayload()
 
@@ -65,7 +65,7 @@ func (f *FinancialAccountService) Create(ctx context.Context, payload financialr
 	return financialmapper.ToFinancialAccountResponse(financialAccount), nil
 }
 
-func (f *FinancialAccountService) Update(ctx context.Context, payload financialrequest.FinancialAccountRequest, financialAccountId int) (financialresponse.FinancialAccountResponse, error) {
+func (f *FinancialAccountService) Update(ctx context.Context, payload financialaccountrequest.FinancialAccountRequest, financialAccountId int) (financialresponse.FinancialAccountResponse, error) {
 
 	validation := payload.ValidatePayload()
 

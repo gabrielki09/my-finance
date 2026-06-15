@@ -3,7 +3,7 @@ package financialaccountvalidator
 import (
 	"context"
 	"finance/internal/apperrors"
-	financialrequest "finance/internal/http/request/financial"
+	financialaccountrequest "finance/internal/http/request/financial/financial_account"
 	"finance/internal/logger"
 	financialmodel "finance/models/financial"
 	"fmt"
@@ -23,7 +23,7 @@ func NewFinancialAccountValidatorValidator(financialAccountRepository FinancialA
 	}
 }
 
-func (v *FinancialAccountValidator) ValidatePayload(ctx context.Context, payload financialrequest.FinancialAccountRequest) error {
+func (v *FinancialAccountValidator) ValidatePayload(ctx context.Context, payload financialaccountrequest.FinancialAccountRequest) error {
 	errors := apperrors.ValidationErrors{}
 
 	financialAccountByName, err := v.repo.VerifyExistsFinancialAccountName(ctx, payload.Name)

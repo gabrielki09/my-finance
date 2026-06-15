@@ -5,7 +5,7 @@ import (
 	"errors"
 	"finance/internal/apperrors"
 	constantsdbcode "finance/internal/constants/db"
-	financialrequest "finance/internal/http/request/financial"
+	financialaccountrequest "finance/internal/http/request/financial/financial_account"
 	"finance/internal/logger"
 	financialmodel "finance/models/financial"
 
@@ -80,7 +80,7 @@ func (f *FinancialAccountRepository) GetAll(ctx context.Context) ([]financialmod
 	return financialAccounts, nil
 }
 
-func (f *FinancialAccountRepository) Create(ctx context.Context, model financialrequest.FinancialAccountRequest) (financialmodel.FinancialAccountModel, error) {
+func (f *FinancialAccountRepository) Create(ctx context.Context, model financialaccountrequest.FinancialAccountRequest) (financialmodel.FinancialAccountModel, error) {
 	var pgErr *pgconn.PgError
 	var financialAccount financialmodel.FinancialAccountModel
 
@@ -176,7 +176,7 @@ func (f *FinancialAccountRepository) FindById(ctx context.Context, financialAcco
 	return financialAccount, nil
 }
 
-func (f *FinancialAccountRepository) Update(ctx context.Context, model financialrequest.FinancialAccountRequest, financialAccountId int) (financialAccount financialmodel.FinancialAccountModel, err error) {
+func (f *FinancialAccountRepository) Update(ctx context.Context, model financialaccountrequest.FinancialAccountRequest, financialAccountId int) (financialAccount financialmodel.FinancialAccountModel, err error) {
 	if err = f.db.QueryRow(
 		ctx,
 		`
