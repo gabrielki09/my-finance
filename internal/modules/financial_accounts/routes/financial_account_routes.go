@@ -23,4 +23,5 @@ func RegisterFinancialAccountRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	r.HandleFunc("PUT /financial-account/{id}", controller.Update)
 	r.HandleFunc("DELETE /financial-account/delete/{id}", controller.Delete)
 	r.HandleFunc("PATCH /financial-account/active/{id}", controller.Active)
+	r.HandleFunc("GET /financial-account/current-balance/{id}", controller.GetCurrentBalance)
 }

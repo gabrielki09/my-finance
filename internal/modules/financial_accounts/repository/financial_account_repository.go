@@ -6,6 +6,7 @@ import (
 	"finance/internal/apperrors"
 	constantsdbcode "finance/internal/constants/db"
 	financialaccountrequest "finance/internal/http/request/financial/financial_account"
+	financialresponse "finance/internal/http/response/financial"
 	"finance/internal/logger"
 	financialmodel "finance/models/financial"
 
@@ -294,4 +295,56 @@ func (f *FinancialAccountRepository) VerifyExistsFinancialAccountName(ctx contex
 	}
 
 	return &financialAccount, nil
+}
+
+func (f *FinancialAccountRepository) GetCurrentBalance(ctx context.Context, financialAccountId int) (financialresponse.FinancialCurrentBalanceResponse, error) {
+	var currentBalanceBody financialresponse.FinancialCurrentBalanceResponse
+
+	if err := f.db.QueryRow(
+		ctx,
+		`
+			SELECT
+				fa.id,
+				fa.name,
+				fa.initial_balance 
+				+
+				COALESCE(SUM(
+					CASE
+						WHEN ft.movement_type = 'entry' THEN ft.amount
+						ELSE 0
+					END
+				), 0)
+				-
+				COALESCE(SUM(
+						CASE
+						WHEN ft.movement_type = 'exit' THEN ft.amount
+						ELSE 0
+					END
+				), 0) AS balance
+			FROM
+				financial_accounts fa
+			LEFT JOIN financial_transactions ft 
+				ON ft.financial_account_id = fa.id
+				AND ft.canceled_at IS NULL
+				AND ft.operation_type IN ('original', 'adjustment')
+			WHERE
+				fa.deleted_at IS NULL
+				AND fa.id = $1
+			GROUP BY
+				fa.id,
+				fa.name,
+				fa.initial_balance 
+		`,
+		financialAccountId,
+	).Scan(
+		&currentBalanceBody.Id,
+		&currentBalanceBody.Name,
+		&currentBalanceBody.Balance,
+	); err != nil {
+		logger.General.Error.Println("Erro ao consultar o balanço total da conta financeira:", err)
+
+		return financialresponse.FinancialCurrentBalanceResponse{}, err
+	}
+
+	return currentBalanceBody, nil
 }

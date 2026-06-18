@@ -12,12 +12,13 @@ import (
 )
 
 type FinancialAccountRepository interface {
-	GetAll(r context.Context) ([]financialmodel.FinancialAccountModel, error)
-	Create(r context.Context, payload financialaccountrequest.FinancialAccountRequest) (financialmodel.FinancialAccountModel, error)
-	Update(r context.Context, payload financialaccountrequest.FinancialAccountRequest, financialAccountId int) (financialmodel.FinancialAccountModel, error)
-	FindById(r context.Context, financialAccountId int) (financialmodel.FinancialAccountModel, error)
-	Delete(r context.Context, financialAccountId int) error
-	Active(r context.Context, financialAccountId int) error
+	GetAll(ctx context.Context) ([]financialmodel.FinancialAccountModel, error)
+	Create(ctx context.Context, payload financialaccountrequest.FinancialAccountRequest) (financialmodel.FinancialAccountModel, error)
+	Update(ctx context.Context, payload financialaccountrequest.FinancialAccountRequest, financialAccountId int) (financialmodel.FinancialAccountModel, error)
+	FindById(ctx context.Context, financialAccountId int) (financialmodel.FinancialAccountModel, error)
+	Delete(ctx context.Context, financialAccountId int) error
+	Active(ctx context.Context, financialAccountId int) error
+	GetCurrentBalance(ctx context.Context, financialAccountId int) (financialresponse.FinancialCurrentBalanceResponse, error)
 }
 
 type FinancialAccountService struct {
@@ -114,4 +115,20 @@ func (f *FinancialAccountService) Active(ctx context.Context, financialAccountId
 	}
 
 	return nil
+}
+
+func (f *FinancialAccountService) GetCurrentBalance(ctx context.Context, financialAccountId int) (financialresponse.FinancialCurrentBalanceResponse, error) {
+	if _, err := f.FindById(ctx, financialAccountId); err != nil {
+		logger.General.Error.Println("Erro ao conferir se a conta financeira existe:", err)
+		return financialresponse.FinancialCurrentBalanceResponse{}, err
+	}
+
+	currentBalanceBody, err := f.repository.GetCurrentBalance(ctx, financialAccountId)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao consultar o saldo atual da conta financeira:", err)
+		return financialresponse.FinancialCurrentBalanceResponse{}, err
+	}
+
+	return currentBalanceBody, nil
 }

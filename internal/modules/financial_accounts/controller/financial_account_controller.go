@@ -20,6 +20,7 @@ type FinancialAccountService interface {
 	FindById(context.Context, int) (financialresponse.FinancialAccountResponse, error)
 	Delete(context.Context, int) error
 	Active(context.Context, int) error
+	GetCurrentBalance(context.Context, int) (financialresponse.FinancialCurrentBalanceResponse, error)
 }
 
 type FinancialAccountController struct {
@@ -221,5 +222,32 @@ func (f *FinancialAccountController) Active(w http.ResponseWriter, r *http.Reque
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
 		"Conta financeira ativada com sucesso!",
 		map[string]any{},
+	))
+}
+
+func (f *FinancialAccountController) GetCurrentBalance(w http.ResponseWriter, r *http.Request) {
+	financialAccountId, err := getidpath.GetIdPath(r)
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler o identificador da conta financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	currentBalance, err := f.service.GetCurrentBalance(r.Context(), financialAccountId)
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao conferir o saldo atual da conta financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
+		"Saldo atual da conta financeira.",
+		map[string]any{"current_balance": currentBalance},
 	))
 }

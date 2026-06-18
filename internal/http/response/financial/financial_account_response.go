@@ -6,11 +6,11 @@ import (
 )
 
 type FinancialAccountResponse struct {
-	Id             int                                 `json:"id"`
-	Name           string                              `json:"name"`
-	Type           financialmodel.FinancialAccountType `json:"type"`
-	InitialBalance float64                             `json:"initial_balance"`
-	OpenedAt       time.Time                           `json:"opened_at"`
-	CreatedAt      time.Time                           `json:"created_at"`
-	UpdatedAt      time.Time                           `json:"updated_at"`
+	Id             int                                 `json:"id,omitempty"`
+	Name           string                              `json:"name,omitempty"`
+	Type           financialmodel.FinancialAccountType `json:"type,omitempty"`
+	InitialBalance float64                             `json:"initial_balance,omitempty"`
+	OpenedAt       time.Time                           `json:"opened_at,omitempty"`
+	CreatedAt      time.Time                           `json:"created_at,omitempty"`
+	UpdatedAt      time.Time                           `json:"updated_at,omitempty"`
 }

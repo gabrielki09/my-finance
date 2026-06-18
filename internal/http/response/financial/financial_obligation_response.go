@@ -6,12 +6,12 @@ import (
 )
 
 type FinancialObligationResponse struct {
-	Id          int
-	CategoryId  string
-	Description string
-	Type        financialmodel.FinancialObligationsTpyes
-	Status      financialmodel.FinancialObligationsStatus
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	Id          int                                       `json:"id"`
+	CategoryId  int                                       `json:"category_id"`
+	Description string                                    `json:"description"`
+	Type        financialmodel.FinancialObligationsTpyes  `json:"type"`
+	Status      financialmodel.FinancialObligationsStatus `json:"status"`
+	CreatedAt   time.Time                                 `json:"created_at"`
+	UpdatedAt   time.Time                                 `json:"updated_at"`
+	DeletedAt   *time.Time                                `json:"deleted_at"`
 }

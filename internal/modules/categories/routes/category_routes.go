@@ -12,9 +12,7 @@ import (
 
 func RegisterCategoriesRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	repo := categoriesrepository.NewCategoryRepository(db)
-	categoryValidator := categoryvalidator.NewCategoryValidator(repo)
-
-	service := categoriesservice.NewCategoryService(repo, categoryValidator)
+	service := categoriesservice.NewCategoryService(repo, categoryvalidator.NewCategoryValidator(repo))
 	controller := categoriescontroller.NewCategoryController(service)
 
 	r.HandleFunc("GET /categories", controller.GetAll)

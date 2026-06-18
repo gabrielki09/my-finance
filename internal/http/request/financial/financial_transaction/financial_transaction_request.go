@@ -17,9 +17,8 @@ type FinancialTransactionRequest struct {
 	OriginId              *int                                              `json:"origin_id"`
 	Description           string                                            `json:"description" validate:"required"`
 	Amount                float64                                           `json:"amount" validate:"required"`
-	MovementDate          time.Time                                         `json:"movement_date" validate:"required"`
-	ReferenceDate         time.Time                                         `json:"reference_date" validate:"required"`
-	IdempotencyKey        string                                            `json:"idempotency_key" validate:"required"`
+	MovementDate          string                                            `json:"movement_date" validate:"required"`
+	ReferenceDate         string                                            `json:"reference_date" validate:"required"`
 	MovementType          financialmodel.FinancialTransactionsMovementType  `json:"movement_type" validate:"required"`
 	OperationType         financialmodel.FinancialTransactionsOperationType `json:"operation_type" validate:"required"`
 }
@@ -68,7 +67,7 @@ func (f FinancialTransactionRequest) ValidatePayload() apperrors.ValidationError
 	if f.Description == "" {
 		errors["description"] = append(errors["description"], "A descrição da movimentação financeira é obrigatório.")
 	} else if len(f.Description) > mxl.MAX_LEN_255 {
-		errors["name"] = append(errors["name"], fmt.Sprintf("A descrição da movimentação financeira deve ter no máximo %d caracteres.", mxl.MAX_LEN_255))
+		errors["description"] = append(errors["description"], fmt.Sprintf("A descrição da movimentação financeira deve ter no máximo %d caracteres.", mxl.MAX_LEN_255))
 	}
 
 	//Amount amount
@@ -77,24 +76,24 @@ func (f FinancialTransactionRequest) ValidatePayload() apperrors.ValidationError
 	}
 
 	//MovementDate movement_date
-	if _, err := time.Parse("2006-01-02", f.MovementDate.String()); err != nil {
+	if _, err := time.Parse("2006-01-02", f.MovementDate); err != nil {
 		errors["movement_date"] = append(errors["movement_date"], "A data de movimentação deve estar no formato YYYY-MM-DD.")
 	}
 
 	//ReferenceDate reference_date
-	if _, err := time.Parse("2006-01-02", f.ReferenceDate.String()); err != nil {
+	if _, err := time.Parse("2006-01-02", f.ReferenceDate); err != nil {
 		errors["reference_date"] = append(errors["reference_date"], "A data de referência deve estar no formato YYYY-MM-DD.")
 	}
 
 	//IdempotencyKey idempotency_key
-	//MovementType movement_type
 
+	//MovementType movement_type
 	if !validateFinancialTransactionsMovementType(f.MovementType) {
 		errors["movement_type"] = append(errors["movement_type"], "O tipo da movimentação financeira está inválido.")
 	}
 
 	//OperationType operation_type
-	if !validateFinancialTransactionsMovementType(f.OperationType) {
+	if !validateFinancialTransactionsOperationType(f.OperationType) {
 		errors["operation_type"] = append(errors["operation_type"], "O tipo da operação financeira está inválido.")
 	}
 

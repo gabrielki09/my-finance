@@ -53,12 +53,12 @@ func (c *CategoryController) GetAll(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *CategoryController) Create(w http.ResponseWriter, r *http.Request) {
-	var payLoad categoryrequest.CategoryRequest
+	var payload categoryrequest.CategoryRequest
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 
-	if err := decoder.Decode(&payLoad); err != nil {
+	if err := decoder.Decode(&payload); err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",
 			httpx.DecodeErrorMessage(err),
@@ -66,7 +66,7 @@ func (c *CategoryController) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	category, err := c.service.Create(r.Context(), payLoad)
+	category, err := c.service.Create(r.Context(), payload)
 
 	if err != nil {
 		var validationErr *apperrors.ValidationError
@@ -147,7 +147,7 @@ func (c *CategoryController) FindById(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao ler o identificador da conta financeira",
+			"Erro ao ler o identificador da categoria",
 			map[string]any{"error": err.Error()},
 		))
 		return
@@ -156,7 +156,6 @@ func (c *CategoryController) FindById(w http.ResponseWriter, r *http.Request) {
 	category, err := c.service.FindById(r.Context(), id)
 
 	if err != nil {
-
 		if err == apperrors.ErrNotFound {
 			response.WriteJSON(w, http.StatusNotFound, response.ErrorResponse(
 				"Categoria não localizada",

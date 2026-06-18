@@ -20,7 +20,7 @@ const (
 
 type FinancialObligationModel struct {
 	Id          int
-	CategoryId  string
+	CategoryId  int
 	Description string
 	Type        FinancialObligationsTpyes
 	Status      FinancialObligationsStatus
