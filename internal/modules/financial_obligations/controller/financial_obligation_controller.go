@@ -2,8 +2,14 @@ package financialobligationcontroller
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"finance/internal/apperrors"
+	"finance/internal/helpers/response"
+	"finance/internal/http/httpx"
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	financialresponse "finance/internal/http/response/financial"
+	"net/http"
 )
 
 type FinancialObligationService interface {
@@ -19,4 +25,65 @@ func NewFinancialObligationController(service FinancialObligationService) *Finan
 	return &FinancialObligationController{
 		service: service,
 	}
+}
+
+func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Request) {
+	financialObligations, err := f.service.GetAll(r.Context())
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao retornar todas as obrigações financeiras",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
+		"Todas as obrigações financeiras",
+		map[string]any{"financial_obligations": financialObligations},
+	))
+}
+
+func (f *FinancialObligationController) Create(w http.ResponseWriter, r *http.Request) {
+
+	var payload financialobligationrequest.FinancialObligationRequest
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&payload); err != nil {
+		if err := decoder.Decode(&payload); err != nil {
+			response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+				"Erro ao ler os dados",
+				httpx.DecodeErrorMessage(err),
+			))
+			return
+		}
+	}
+
+	financialObligation, err := f.service.Create(r.Context(), payload)
+
+	if err != nil {
+		var validationErr *apperrors.ValidationError
+
+		if errors.As(err, &validationErr) {
+			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
+				"Erro de validação",
+				validationErr.Errors,
+			))
+			return
+		}
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao cadastrar a obrigação financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
+		"Obrigações financeira cadadastrada com sucesso",
+		map[string]any{"financial_obligation": financialObligation},
+	))
+
 }

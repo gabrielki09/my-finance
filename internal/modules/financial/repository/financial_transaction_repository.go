@@ -454,7 +454,8 @@ func (c *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, 
 			FROM 
 				categories c 
 			WHERE
-				id = $1`,
+				id = $1
+			`,
 			categoryId,
 		).Scan(&checkedCategoryType); err != nil {
 			logger.General.Error.Println("Erro ao conferir se a categoria é válida para a operação")
