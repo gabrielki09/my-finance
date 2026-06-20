@@ -11,20 +11,24 @@ const (
 	CANCELED          FinancialObligationsStatus = "canceled"
 )
 
-type FinancialObligationsTpyes string
+type FinancialObligationsTypes string
 
 const (
-	PAYABLE    FinancialObligationsTpyes = "payable"
-	RECEIVABLE FinancialObligationsTpyes = "receivable"
+	RECEIVABLE FinancialObligationsTypes = "receivable"
+	PAYABLE    FinancialObligationsTypes = "payable"
 )
 
 type FinancialObligationModel struct {
-	Id          int
-	CategoryId  int
-	Description string
-	Type        FinancialObligationsTpyes
-	Status      FinancialObligationsStatus
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
-	DeletedAt   *time.Time
+	Id             int
+	CategoryId     int
+	Description    string
+	Type           FinancialObligationsTypes
+	Status         FinancialObligationsStatus
+	OriginalAmount float64
+	DueDate        time.Time
+	CompetenceDate *time.Time
+	Notes          *string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	DeletedAt      *time.Time
 }

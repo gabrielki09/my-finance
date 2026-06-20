@@ -9,6 +9,7 @@ import (
 	"finance/internal/http/httpx"
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	financialresponse "finance/internal/http/response/financial"
+	"finance/internal/logger"
 	"net/http"
 )
 
@@ -45,6 +46,7 @@ func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Re
 }
 
 func (f *FinancialObligationController) Create(w http.ResponseWriter, r *http.Request) {
+	logger.General.Info.Println("FinancialObligationController - Create")
 
 	var payload financialobligationrequest.FinancialObligationRequest
 
@@ -52,13 +54,13 @@ func (f *FinancialObligationController) Create(w http.ResponseWriter, r *http.Re
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&payload); err != nil {
-		if err := decoder.Decode(&payload); err != nil {
-			response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-				"Erro ao ler os dados",
-				httpx.DecodeErrorMessage(err),
-			))
-			return
-		}
+		logger.General.Error.Println("Erro:", err)
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler os dados",
+			httpx.DecodeErrorMessage(err),
+		))
+		return
 	}
 
 	financialObligation, err := f.service.Create(r.Context(), payload)

@@ -5,6 +5,7 @@ import (
 	categoryesroutes "finance/internal/modules/categories/routes"
 	financialtransactionroutes "finance/internal/modules/financial/routes"
 	financialaccountroutes "finance/internal/modules/financial_accounts/routes"
+	financialobligationsroutes "finance/internal/modules/financial_obligations/routes"
 	"finance/internal/routes/cors"
 	"log"
 	"net/http"
@@ -33,6 +34,7 @@ func StartServer(db *pgxpool.Pool) {
 	categoryesroutes.RegisterCategoriesRoutes(publicMux, db)
 	financialaccountroutes.RegisterFinancialAccountRoutes(publicMux, db)
 	financialtransactionroutes.RegisterFinancialTransactionRoutes(publicMux, db)
+	financialobligationsroutes.RegisterFinancialObligationRoutes(publicMux, db)
 
 	rootMux.Handle("/api/", http.StripPrefix("/api", publicMux))
 

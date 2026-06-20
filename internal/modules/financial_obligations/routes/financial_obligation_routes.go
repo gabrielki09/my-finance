@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewFinancialObligationRoutes(r *http.ServeMux, db *pgxpool.Pool) {
+func RegisterFinancialObligationRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	repo := financialobligationrepository.NewFinancialObligationRepository(db)
 	validator := financialobligationvalidator.NewFinancialObligationValidatorValidator(repo)
 	service := financialobligationservice.NewFinancialObligationService(repo, validator)

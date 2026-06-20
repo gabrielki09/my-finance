@@ -81,29 +81,34 @@ func (f *FinancialObligationRepository) Create(ctx context.Context, payload fina
 	return financialObligation, nil
 }
 
-func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTpyes) (bool, error) {
+func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, categoryId int, obligationType financialmodel.FinancialObligationsTypes) (bool, error) {
 	var checkedCategoryType bool
+
+	logger.General.Info.Printf("Dados: categoryId %d - obligationType: %s", categoryId, obligationType)
 
 	if err := f.db.QueryRow(
 		ctx,
 		`
-			SELECT
-				CASE
-					WHEN $2 = 'entry' AND c."type" IN ('income', 'both') THEN TRUE
-					WHEN $2 = 'exit' AND c."type" IN ('expense', 'both') THEN TRUE
-					ELSE FALSE
-				END AS checked_category_type
-			FROM
-
-			WHERE
-				c.id = $1 AND
-				c.active = TRUE AND
-				c.deleted_at IS NULL 
+			SELECT EXISTS (
+				SELECT
+					1
+				FROM
+					categories c
+				WHERE
+					c.id = $1 AND
+					c.deleted_at IS NULL
+					AND (
+						($2 = 'receivable' AND c."type" IN ('income', 'both'))
+						OR
+						($2 = 'payable' AND c."type" IN ('expense', 'both'))
+					)
+					
+			) AS checked_category_type
 		`,
 		categoryId,
-		movementType,
+		obligationType,
 	).Scan(&checkedCategoryType); err != nil {
-		logger.General.Error.Println("Erro ao conferir a categoria")
+		logger.General.Error.Println("Erro ao conferir a categoria:", err)
 		return false, err
 	}
 

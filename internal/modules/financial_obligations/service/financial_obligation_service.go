@@ -49,6 +49,7 @@ func (f *FinancialObligationService) Create(ctx context.Context, payload financi
 	}
 
 	if err := f.validator.ValidatePayload(ctx, payload); err != nil {
+		logger.General.Error.Println("Erro na validação de dados:", err)
 		return financialresponse.FinancialObligationResponse{}, err
 	}
 

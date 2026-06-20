@@ -9,7 +9,7 @@ import (
 )
 
 type FinancialObligationRepository interface {
-	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTpyes) (bool, error)
+	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTypes) (bool, error)
 }
 
 type FinancialObligationValidator struct {
