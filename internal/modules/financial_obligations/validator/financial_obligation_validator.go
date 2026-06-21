@@ -35,7 +35,7 @@ func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payl
 		return err
 	}
 
-	if isInvalidType {
+	if !isInvalidType {
 		errors["category_id"] = append(errors["category_id"], "Tipo da categoria incoerente com o tipo da obrigação financeira")
 	}
 

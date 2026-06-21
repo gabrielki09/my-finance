@@ -14,7 +14,7 @@ type FinancialObligationRequest struct {
 	Type           financialmodel.FinancialObligationsTypes `json:"type" validate:"required"`
 	OriginalAmount float64                                  `json:"original_amount" validate:"required"`
 	DueDate        string                                   `json:"due_date" validate:"required"`
-	CompetenceDate *time.Time                               `json:"competence_date" validate:"required"`
+	CompetenceDate *string                                  `json:"competence_date" validate:"required"`
 	Notes          *string                                  `json:"notes" validate:"required"`
 }
 
@@ -49,6 +49,12 @@ func (f FinancialObligationRequest) ValidatePayload() apperrors.ValidationErrors
 
 	if f.OriginalAmount <= 0 {
 		errors["original_amount"] = append(errors["original_amount"], "O valor da obrigação financeira precisa ser maior que zero..")
+	}
+
+	if f.CompetenceDate != nil {
+		if _, err := time.Parse("2006-01-02", *f.CompetenceDate); err != nil {
+			errors["competence_date"] = append(errors["competence_date"], "A data de competência deve estar no formato YYYY-MM-DD.")
+		}
 	}
 
 	if _, err := time.Parse("2006-01-02", f.DueDate); err != nil {

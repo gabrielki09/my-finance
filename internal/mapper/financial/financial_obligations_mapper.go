@@ -7,13 +7,17 @@ import (
 
 func ToFinancialObligationResponse(f financialmodel.FinancialObligationModel) financialresponse.FinancialObligationResponse {
 	return financialresponse.FinancialObligationResponse{
-		Id:          f.Id,
-		CategoryId:  f.CategoryId,
-		Description: f.Description,
-		Type:        f.Type,
-		Status:      f.Status,
-		CreatedAt:   f.CreatedAt,
-		UpdatedAt:   f.UpdatedAt,
+		Id:             f.Id,
+		CategoryId:     f.CategoryId,
+		Description:    f.Description,
+		Type:           f.Type,
+		Status:         f.Status,
+		OriginalAmount: f.OriginalAmount,
+		DueDate:        f.DueDate,
+		CompetenceDate: f.CompetenceDate,
+		Notes:          f.Notes,
+		CreatedAt:      f.CreatedAt,
+		UpdatedAt:      f.UpdatedAt,
 	}
 }
 

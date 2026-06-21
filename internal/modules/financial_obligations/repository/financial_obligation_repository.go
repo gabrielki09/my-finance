@@ -19,25 +19,12 @@ func NewFinancialObligationRepository(db *pgxpool.Pool) *FinancialObligationRepo
 	}
 }
 
-func (f FinancialObligationRepository) GetAll(ctx context.Context) ([]financialmodel.FinancialObligationModel, error) {
+func (f FinancialObligationRepository) GetAll(ctx context.Context, query string) ([]financialmodel.FinancialObligationModel, error) {
 	var financialObligations []financialmodel.FinancialObligationModel
 
 	financialObligationRows, err := f.db.Query(
 		ctx,
-		`
-			SELECT
-				id,
-				category_id,
-				description,
-				type,
-				status,
-				created_at,
-				updated_at
-			FROM
-				financial_obligations
-			WHERE
-				deleted_at IS NULL
-		`,
+		query,
 	)
 
 	if err != nil {
@@ -56,9 +43,12 @@ func (f FinancialObligationRepository) GetAll(ctx context.Context) ([]financialm
 			&financialObligation.Description,
 			&financialObligation.Type,
 			&financialObligation.Status,
+			&financialObligation.OriginalAmount,
+			&financialObligation.DueDate,
+			&financialObligation.CompetenceDate,
+			&financialObligation.Notes,
 			&financialObligation.CreatedAt,
 			&financialObligation.UpdatedAt,
-			&financialObligation.DeletedAt,
 		); err != nil {
 			logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
 			return []financialmodel.FinancialObligationModel{}, err
@@ -78,13 +68,71 @@ func (f FinancialObligationRepository) GetAll(ctx context.Context) ([]financialm
 func (f *FinancialObligationRepository) Create(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) (financialmodel.FinancialObligationModel, error) {
 	var financialObligation financialmodel.FinancialObligationModel
 
+	if err := f.db.QueryRow(
+		ctx,
+		`
+			INSERT INTO financial_obligations
+				(
+					category_id,
+					description,
+					type,
+					original_amount,
+					due_date,
+					competence_date,
+					notes
+				)
+
+			VALUES (
+				$1,
+				$2,
+				$3,
+				$4,
+				$5,
+				$6,
+				$7
+			)
+
+			RETURNING
+				id,
+				category_id,
+				description,
+				type,
+				status,
+				original_amount,
+				due_date,
+				competence_date,
+				notes,
+				created_at,
+				updated_at
+		`,
+		payload.CategoryId,
+		payload.Description,
+		payload.Type,
+		payload.OriginalAmount,
+		payload.DueDate,
+		payload.CompetenceDate,
+		payload.Notes,
+	).Scan(
+		&financialObligation.Id,
+		&financialObligation.CategoryId,
+		&financialObligation.Description,
+		&financialObligation.Type,
+		&financialObligation.Status,
+		&financialObligation.OriginalAmount,
+		&financialObligation.DueDate,
+		&financialObligation.CompetenceDate,
+		&financialObligation.Notes,
+		&financialObligation.CreatedAt,
+		&financialObligation.UpdatedAt,
+	); err != nil {
+		return financialmodel.FinancialObligationModel{}, err
+	}
+
 	return financialObligation, nil
 }
 
 func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, categoryId int, obligationType financialmodel.FinancialObligationsTypes) (bool, error) {
 	var checkedCategoryType bool
-
-	logger.General.Info.Printf("Dados: categoryId %d - obligationType: %s", categoryId, obligationType)
 
 	if err := f.db.QueryRow(
 		ctx,
@@ -112,5 +160,6 @@ func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, c
 		return false, err
 	}
 
+	logger.General.Error.Println("Categoria é válida?", checkedCategoryType)
 	return checkedCategoryType, nil
 }

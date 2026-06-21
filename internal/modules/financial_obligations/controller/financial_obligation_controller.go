@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"finance/internal/apperrors"
+	filterv1 "finance/internal/helpers/filterV1"
 	"finance/internal/helpers/response"
 	"finance/internal/http/httpx"
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
@@ -14,7 +15,7 @@ import (
 )
 
 type FinancialObligationService interface {
-	GetAll(context.Context) ([]financialresponse.FinancialObligationResponse, error)
+	GetAll(context.Context, string) ([]financialresponse.FinancialObligationResponse, error)
 	Create(context.Context, financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error)
 }
 
@@ -29,7 +30,18 @@ func NewFinancialObligationController(service FinancialObligationService) *Finan
 }
 
 func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Request) {
-	financialObligations, err := f.service.GetAll(r.Context())
+
+	filters, err := filterv1.ParseFinancialObligationFilters(r)
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusInternalServerError, response.ErrorResponse(
+			"Erro ao converter os filtros das obrigações financeiras",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	financialObligations, err := f.service.GetAll(r.Context(), filters)
 
 	if err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
