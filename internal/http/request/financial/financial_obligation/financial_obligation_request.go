@@ -18,7 +18,7 @@ type FinancialObligationRequest struct {
 	Notes          *string                                  `json:"notes" validate:"required"`
 }
 
-func validateFinancialObligationsTypes(t financialmodel.FinancialObligationsTypes) bool {
+func ValidateFinancialObligationsTypes(t financialmodel.FinancialObligationsTypes) bool {
 	switch t {
 	case financialmodel.PAYABLE,
 		financialmodel.RECEIVABLE:
@@ -43,7 +43,7 @@ func (f FinancialObligationRequest) ValidatePayload() apperrors.ValidationErrors
 		errors["description"] = append(errors["description"], fmt.Sprintf("A descrição da obrigação financeira deve ter no máximo %d caracteres.", mxl.MAX_LEN_255))
 	}
 
-	if !validateFinancialObligationsTypes(f.Type) {
+	if !ValidateFinancialObligationsTypes(f.Type) {
 		errors["type"] = append(errors["type"], "O tipo da obrigação financeira está inválido.")
 	}
 

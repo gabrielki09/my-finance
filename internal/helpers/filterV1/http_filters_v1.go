@@ -2,21 +2,14 @@ package filterv1
 
 import (
 	"errors"
+	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	"finance/internal/logger"
+	financialmodel "finance/models/financial"
 	"net/http"
 	"strconv"
 
 	"github.com/Masterminds/squirrel"
-	_ "github.com/Masterminds/squirrel"
 )
-
-type FinancialObligationFilters struct {
-	CategoryId   *int
-	Type         *string
-	Status       *string
-	StartDueDate *string
-	EndDueDate   *string
-}
 
 func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 	logger.General.Info.Println("Vai conferir os filtros inseridos na rota")
@@ -47,15 +40,19 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 		if err != nil {
 			logger.General.Error.Println("Erro ao converter o ID da categoria:", err)
 
-			return "", nil, errors.New("o filtro category_id deve ser um número inteiro")
+			return "", nil, errors.New("o filtro category_id deve ser um número inteiro.")
 		}
 
-		//filter.CategoryId = &categoryId
 		qb = qb.Where(squirrel.Eq{"category_id": categoryId})
 	}
 
 	if t := q.Get("type"); t != "" {
-		qb = qb.Where(squirrel.Eq{"type": t})
+
+		if !financialobligationrequest.ValidateFinancialObligationsTypes(financialmodel.FinancialObligationsTypes(t)) {
+			return "", nil, errors.New("o filtro type deve ser estar em um formato válido.")
+		}
+
+		qb = qb.Where(squirrel.Eq{`"type"`: t})
 	}
 
 	if s := q.Get("status"); s != "" {
