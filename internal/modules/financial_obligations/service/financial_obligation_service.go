@@ -12,7 +12,7 @@ import (
 )
 
 type FinancialObligationRepository interface {
-	GetAll(ctx context.Context, query string) ([]financialmodel.FinancialObligationModel, error)
+	GetAll(ctx context.Context, query string, args []any) ([]financialmodel.FinancialObligationModel, error)
 	Create(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) (financialmodel.FinancialObligationModel, error)
 }
 
@@ -28,9 +28,9 @@ func NewFinancialObligationService(repository FinancialObligationRepository, val
 	}
 }
 
-func (f *FinancialObligationService) GetAll(ctx context.Context, query string) ([]financialresponse.FinancialObligationResponse, error) {
+func (f *FinancialObligationService) GetAll(ctx context.Context, query string, args []any) ([]financialresponse.FinancialObligationResponse, error) {
 
-	financialObligations, err := f.repository.GetAll(ctx, query)
+	financialObligations, err := f.repository.GetAll(ctx, query, args)
 
 	if err != nil {
 		logger.General.Error.Println("Erro ao criar a conta financeira:", err)

@@ -19,12 +19,13 @@ func NewFinancialObligationRepository(db *pgxpool.Pool) *FinancialObligationRepo
 	}
 }
 
-func (f FinancialObligationRepository) GetAll(ctx context.Context, query string) ([]financialmodel.FinancialObligationModel, error) {
+func (f FinancialObligationRepository) GetAll(ctx context.Context, query string, args []any) ([]financialmodel.FinancialObligationModel, error) {
 	var financialObligations []financialmodel.FinancialObligationModel
 
 	financialObligationRows, err := f.db.Query(
 		ctx,
 		query,
+		args...,
 	)
 
 	if err != nil {

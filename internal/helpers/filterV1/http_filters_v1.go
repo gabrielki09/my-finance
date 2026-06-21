@@ -1,6 +1,7 @@
 package filterv1
 
 import (
+	"errors"
 	"finance/internal/logger"
 	"net/http"
 	"strconv"
@@ -17,7 +18,9 @@ type FinancialObligationFilters struct {
 	EndDueDate   *string
 }
 
-func ParseFinancialObligationFilters(r *http.Request) (string, error) {
+func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
+	logger.General.Info.Println("Vai conferir os filtros inseridos na rota")
+
 	q := r.URL.Query()
 
 	qb := squirrel.
@@ -35,13 +38,16 @@ func ParseFinancialObligationFilters(r *http.Request) (string, error) {
 			"updated_at",
 		).
 		From("financial_obligations").
-		Where("deleted_at IS NULL")
+		Where("deleted_at IS NULL").
+		PlaceholderFormat(squirrel.Dollar)
 
 	if c := q.Get("category_id"); c != "" {
 		categoryId, err := strconv.Atoi(c)
 
 		if err != nil {
 			logger.General.Error.Println("Erro ao converter o ID da categoria:", err)
+
+			return "", nil, errors.New("o filtro category_id deve ser um número inteiro")
 		}
 
 		//filter.CategoryId = &categoryId
@@ -49,7 +55,7 @@ func ParseFinancialObligationFilters(r *http.Request) (string, error) {
 	}
 
 	if t := q.Get("type"); t != "" {
-		qb = qb.Where(squirrel.Eq{"status": t})
+		qb = qb.Where(squirrel.Eq{"type": t})
 	}
 
 	if s := q.Get("status"); s != "" {
@@ -64,14 +70,14 @@ func ParseFinancialObligationFilters(r *http.Request) (string, error) {
 		qb = qb.Where(squirrel.Expr("due_date BETWEEN $1 AND $2"), sd, ed)
 	}
 
-	logger.General.Info.Println("SQL gerado pelo http_filter:", qb)
-
-	query, _, err := qb.ToSql()
+	query, args, err := qb.ToSql()
 
 	if err != nil {
 		logger.General.General.Println("Erro ao converter o builder para SQL:", err)
-		return "", err
+		return "", nil, err
 	}
 
-	return query, nil
+	logger.General.Info.Println("SQL gerado pelo http_filter:", query)
+
+	return query, args, nil
 }

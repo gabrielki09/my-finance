@@ -15,7 +15,7 @@ import (
 )
 
 type FinancialObligationService interface {
-	GetAll(context.Context, string) ([]financialresponse.FinancialObligationResponse, error)
+	GetAll(context.Context, string, []any) ([]financialresponse.FinancialObligationResponse, error)
 	Create(context.Context, financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error)
 }
 
@@ -31,7 +31,7 @@ func NewFinancialObligationController(service FinancialObligationService) *Finan
 
 func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Request) {
 
-	filters, err := filterv1.ParseFinancialObligationFilters(r)
+	filters, args, err := filterv1.ParseFinancialObligationFilters(r)
 
 	if err != nil {
 		response.WriteJSON(w, http.StatusInternalServerError, response.ErrorResponse(
@@ -41,7 +41,7 @@ func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	financialObligations, err := f.service.GetAll(r.Context(), filters)
+	financialObligations, err := f.service.GetAll(r.Context(), filters, args)
 
 	if err != nil {
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
