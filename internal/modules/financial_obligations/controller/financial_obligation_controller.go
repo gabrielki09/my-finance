@@ -34,8 +34,18 @@ func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Re
 	filters, args, err := filterv1.ParseFinancialObligationFilters(r)
 
 	if err != nil {
-		response.WriteJSON(w, http.StatusInternalServerError, response.ErrorResponse(
-			"Erro ao converter os filtros das obrigações financeiras",
+		var validationErr *apperrors.ValidationError
+
+		if errors.As(err, &validationErr) {
+			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
+				"Erro de validação",
+				validationErr.Errors,
+			))
+			return
+		}
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao conferir os filtros das obrigações financeiras",
 			map[string]any{"error": err.Error()},
 		))
 		return
