@@ -132,6 +132,68 @@ func (f *FinancialObligationRepository) Create(ctx context.Context, payload fina
 	return financialObligation, nil
 }
 
+func (f *FinancialObligationRepository) Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialmodel.FinancialObligationModel, error) {
+	financialObligation, err := f.FindById(ctx, financialObligationId)
+
+	if err != nil {
+		return financialmodel.FinancialObligationModel{}, nil
+	}
+
+	switch financialObligation.Status {
+	case financialmodel.PARTIALLY_SETTLED:
+		if err := f.db.QueryRow(
+			ctx,
+			`
+				UPDATE 	
+					financial_obligations
+				SET
+					description = $2,
+					notes = $3
+				WHERE
+					id = $1
+					status = 'partially_settled'
+			`,
+			financialObligationId,
+			payload.Description,
+			payload.Notes,
+		).Scan(); err != nil {
+			return financialmodel.FinancialObligationModel{}, nil
+		}
+
+	case financialmodel.PENDING:
+		if err := f.db.QueryRow(
+			ctx,
+			`
+				UPDATE 	
+					financial_obligations
+				SET
+					category_id = $2,
+					description = $3,
+					type = $4,
+					original_amount = $5,
+					due_date = $6,
+					competence_date = $7,
+					notes = $8
+				WHERE
+					id = $1 AND
+					status = 'pending'
+			`,
+			financialObligationId,
+			payload.CategoryId,
+			payload.Description,
+			payload.Type,
+			payload.OriginalAmount,
+			payload.DueDate,
+			payload.CompetenceDate,
+			payload.Notes,
+		).Scan(); err != nil {
+			return financialmodel.FinancialObligationModel{}, nil
+		}
+	}
+
+	return financialObligation, nil
+}
+
 func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, categoryId int, obligationType financialmodel.FinancialObligationsTypes) (bool, error) {
 	var checkedCategoryType bool
 
@@ -162,5 +224,50 @@ func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, c
 	}
 
 	logger.General.Error.Println("Categoria é válida?", checkedCategoryType)
+
 	return checkedCategoryType, nil
+}
+
+func (f *FinancialObligationRepository) FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error) {
+	var financialObligation financialmodel.FinancialObligationModel
+
+	if err := f.db.QueryRow(
+		ctx,
+		`
+			SELECT
+				id,
+				category_id,
+				description,
+				type,
+				status,
+				original_amount,
+				due_date,
+				competence_date,
+				notes,
+				created_at,
+				updated_at
+			FROM
+
+			WHERE
+				id = $1
+		`,
+		financialObligationId,
+	).Scan(
+		&financialObligation.Id,
+		&financialObligation.CategoryId,
+		&financialObligation.Description,
+		&financialObligation.Type,
+		&financialObligation.Status,
+		&financialObligation.OriginalAmount,
+		&financialObligation.DueDate,
+		&financialObligation.CompetenceDate,
+		&financialObligation.Notes,
+		&financialObligation.CreatedAt,
+		&financialObligation.UpdatedAt,
+	); err != nil {
+		return financialObligation, nil
+	}
+
+	return financialObligation, nil
+
 }

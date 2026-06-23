@@ -14,6 +14,7 @@ import (
 type FinancialObligationRepository interface {
 	GetAll(ctx context.Context, query string, args []any) ([]financialmodel.FinancialObligationModel, error)
 	Create(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) (financialmodel.FinancialObligationModel, error)
+	Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialmodel.FinancialObligationModel, error)
 }
 
 type FinancialObligationService struct {
@@ -40,6 +41,7 @@ func (f *FinancialObligationService) GetAll(ctx context.Context, query string, a
 	return financialmapper.ToFinancialObligationResponseList(financialObligations), nil
 
 }
+
 func (f *FinancialObligationService) Create(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error) {
 
 	validation := payload.ValidatePayload()
@@ -54,6 +56,29 @@ func (f *FinancialObligationService) Create(ctx context.Context, payload financi
 	}
 
 	financialObligation, err := f.repository.Create(ctx, payload)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao criar a conta financeira:", err)
+		return financialresponse.FinancialObligationResponse{}, err
+	}
+
+	return financialmapper.ToFinancialObligationResponse(financialObligation), nil
+}
+
+func (f *FinancialObligationService) Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialresponse.FinancialObligationResponse, error) {
+
+	validation := payload.ValidatePayload()
+
+	if len(validation) > 0 {
+		return financialresponse.FinancialObligationResponse{}, apperrors.NewValidationError(validation)
+	}
+
+	if err := f.validator.ValidateUpdatePayload(ctx, payload, financialObligationId); err != nil {
+		logger.General.Error.Println("Erro na validação de dados:", err)
+		return financialresponse.FinancialObligationResponse{}, err
+	}
+
+	financialObligation, err := f.repository.Update(ctx, payload, financialObligationId)
 
 	if err != nil {
 		logger.General.Error.Println("Erro ao criar a conta financeira:", err)

@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"finance/internal/apperrors"
-	filterv1 "finance/internal/helpers/filterV1"
+
+	"finance/internal/helpers/getidpath"
 	"finance/internal/helpers/response"
+	financialobligationfiltersv1 "finance/internal/http/filter_V1/financial_obligation"
 	"finance/internal/http/httpx"
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	financialresponse "finance/internal/http/response/financial"
@@ -17,6 +19,7 @@ import (
 type FinancialObligationService interface {
 	GetAll(context.Context, string, []any) ([]financialresponse.FinancialObligationResponse, error)
 	Create(context.Context, financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error)
+	Update(context.Context, financialobligationrequest.FinancialObligationRequest, int) (financialresponse.FinancialObligationResponse, error)
 }
 
 type FinancialObligationController struct {
@@ -30,8 +33,7 @@ func NewFinancialObligationController(service FinancialObligationService) *Finan
 }
 
 func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Request) {
-
-	filters, args, err := filterv1.ParseFinancialObligationFilters(r)
+	filters, args, err := financialobligationfiltersv1.ParseFinancialObligationFilters(r)
 
 	if err != nil {
 		var validationErr *apperrors.ValidationError
@@ -106,6 +108,59 @@ func (f *FinancialObligationController) Create(w http.ResponseWriter, r *http.Re
 	}
 
 	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
+		"Obrigações financeira cadadastrada com sucesso",
+		map[string]any{"financial_obligation": financialObligation},
+	))
+
+}
+
+func (f *FinancialObligationController) Update(w http.ResponseWriter, r *http.Request) {
+	var payload financialobligationrequest.FinancialObligationRequest
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&payload); err != nil {
+		logger.General.Error.Println("Erro:", err)
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler os dados",
+			httpx.DecodeErrorMessage(err),
+		))
+		return
+	}
+
+	financialObligationId, err := getidpath.GetIdPath(r)
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler o identificador da obrigação financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	financialObligation, err := f.service.Update(r.Context(), payload, financialObligationId)
+
+	if err != nil {
+		var validationErr *apperrors.ValidationError
+
+		if errors.As(err, &validationErr) {
+			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
+				"Erro de validação",
+				validationErr.Errors,
+			))
+			return
+		}
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao cadastrar a obrigação financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
 		"Obrigações financeira cadadastrada com sucesso",
 		map[string]any{"financial_obligation": financialObligation},
 	))
