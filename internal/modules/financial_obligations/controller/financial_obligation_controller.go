@@ -20,6 +20,7 @@ type FinancialObligationService interface {
 	GetAll(context.Context, string, []any) ([]financialresponse.FinancialObligationResponse, error)
 	Create(context.Context, financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error)
 	Update(context.Context, financialobligationrequest.FinancialObligationRequest, int) (financialresponse.FinancialObligationResponse, error)
+	Cancel(context.Context, int) error
 }
 
 type FinancialObligationController struct {
@@ -154,15 +155,40 @@ func (f *FinancialObligationController) Update(w http.ResponseWriter, r *http.Re
 		}
 
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
-			"Erro ao cadastrar a obrigação financeira",
+			"Erro ao alterar a obrigação financeira",
 			map[string]any{"error": err.Error()},
 		))
 		return
 	}
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
-		"Obrigações financeira cadadastrada com sucesso",
+		"Obrigações financeira alterada com sucesso",
 		map[string]any{"financial_obligation": financialObligation},
 	))
+}
 
+// Cancel(context.Context, int) error
+func (f *FinancialObligationController) Cancel(w http.ResponseWriter, r *http.Request) {
+	financialObligationId, err := getidpath.GetIdPath(r)
+
+	if err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler o identificador da obrigação financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	if err := f.service.Cancel(r.Context(), financialObligationId); err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao cancelar a obrigação financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
+		"Obrigações financeira cancelada com sucesso",
+		map[string]any{},
+	))
 }

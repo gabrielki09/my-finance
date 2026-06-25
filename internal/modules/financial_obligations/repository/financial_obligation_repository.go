@@ -22,6 +22,8 @@ func NewFinancialObligationRepository(db *pgxpool.Pool) *FinancialObligationRepo
 func (f FinancialObligationRepository) GetAll(ctx context.Context, query string, args []any) ([]financialmodel.FinancialObligationModel, error) {
 	var financialObligations []financialmodel.FinancialObligationModel
 
+	logger.General.Info.Println("Query:", query)
+
 	financialObligationRows, err := f.db.Query(
 		ctx,
 		query,
@@ -133,14 +135,21 @@ func (f *FinancialObligationRepository) Create(ctx context.Context, payload fina
 }
 
 func (f *FinancialObligationRepository) Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialmodel.FinancialObligationModel, error) {
+	logger.General.Info.Println("FinancialObligationRepository - Update")
+
 	financialObligation, err := f.FindById(ctx, financialObligationId)
 
 	if err != nil {
-		return financialmodel.FinancialObligationModel{}, nil
+		logger.General.Error.Println("Erro ao localizar a obrigação financeira:", err)
+		return financialmodel.FinancialObligationModel{}, err
 	}
+
+	logger.General.Info.Println("financialObligation:", financialObligation)
 
 	switch financialObligation.Status {
 	case financialmodel.PARTIALLY_SETTLED:
+		logger.General.Info.Println("Status atual: ", financialmodel.PARTIALLY_SETTLED)
+
 		if err := f.db.QueryRow(
 			ctx,
 			`
@@ -149,18 +158,40 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 				SET
 					description = $2,
 					notes = $3
-				WHERE
-					id = $1
+				WHERE 
+					id = $1 AND
 					status = 'partially_settled'
+				RETURNING
+					id,
+					category_id,
+					description,
+					type,
+					status,
+					original_amount,
+					due_date,
+					competence_date,
+					notes
 			`,
 			financialObligationId,
 			payload.Description,
 			payload.Notes,
-		).Scan(); err != nil {
-			return financialmodel.FinancialObligationModel{}, nil
+		).Scan(
+			&financialObligation.Id,
+			&financialObligation.CategoryId,
+			&financialObligation.Description,
+			&financialObligation.Type,
+			&financialObligation.Status,
+			&financialObligation.OriginalAmount,
+			&financialObligation.DueDate,
+			&financialObligation.CompetenceDate,
+			&financialObligation.Notes,
+		); err != nil {
+			return financialmodel.FinancialObligationModel{}, err
 		}
 
 	case financialmodel.PENDING:
+		logger.General.Info.Println("Status atual: ", financialmodel.PENDING)
+
 		if err := f.db.QueryRow(
 			ctx,
 			`
@@ -177,6 +208,16 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 				WHERE
 					id = $1 AND
 					status = 'pending'
+				RETURNING
+					id,
+					category_id,
+					description,
+					type,
+					status,
+					original_amount,
+					due_date,
+					competence_date,
+					notes
 			`,
 			financialObligationId,
 			payload.CategoryId,
@@ -186,8 +227,18 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 			payload.DueDate,
 			payload.CompetenceDate,
 			payload.Notes,
-		).Scan(); err != nil {
-			return financialmodel.FinancialObligationModel{}, nil
+		).Scan(
+			&financialObligation.Id,
+			&financialObligation.CategoryId,
+			&financialObligation.Description,
+			&financialObligation.Type,
+			&financialObligation.Status,
+			&financialObligation.OriginalAmount,
+			&financialObligation.DueDate,
+			&financialObligation.CompetenceDate,
+			&financialObligation.Notes,
+		); err != nil {
+			return financialmodel.FinancialObligationModel{}, err
 		}
 	}
 
@@ -195,6 +246,7 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 }
 
 func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, categoryId int, obligationType financialmodel.FinancialObligationsTypes) (bool, error) {
+	logger.General.Info.Println("FinancialObligationRepository - ValidCategoryType")
 	var checkedCategoryType bool
 
 	if err := f.db.QueryRow(
@@ -229,6 +281,8 @@ func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, c
 }
 
 func (f *FinancialObligationRepository) FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error) {
+	logger.General.Info.Println("FinancialObligationRepository - FindById")
+
 	var financialObligation financialmodel.FinancialObligationModel
 
 	if err := f.db.QueryRow(
@@ -246,8 +300,8 @@ func (f *FinancialObligationRepository) FindById(ctx context.Context, financialO
 				notes,
 				created_at,
 				updated_at
-			FROM
-
+			FROM	
+				financial_obligations
 			WHERE
 				id = $1
 		`,
@@ -265,9 +319,31 @@ func (f *FinancialObligationRepository) FindById(ctx context.Context, financialO
 		&financialObligation.CreatedAt,
 		&financialObligation.UpdatedAt,
 	); err != nil {
-		return financialObligation, nil
+		logger.General.Error.Println("Erro ao localizar a obrigação financeiro pelo ID:", err)
+		return financialObligation, err
 	}
 
 	return financialObligation, nil
+
+}
+
+func (f *FinancialObligationRepository) Cancel(ctx context.Context, financialObligationId int) error {
+	if _, err := f.db.Exec(
+		ctx,
+		`
+			UPDATE 
+				financial_obligations
+			SET
+				status = 'canceled',
+				canceled_at = now()
+			WHERE
+				id = $1
+		`,
+		financialObligationId,
+	); err != nil {
+		return err
+	}
+
+	return nil
 
 }

@@ -25,4 +25,4 @@ services:
       - finance_postgres_data:/var/lib/postgresql
 
 volumes:
-  finance_postgres_data
+  finance_postgres_data:

@@ -15,6 +15,8 @@ type FinancialObligationRepository interface {
 	GetAll(ctx context.Context, query string, args []any) ([]financialmodel.FinancialObligationModel, error)
 	Create(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) (financialmodel.FinancialObligationModel, error)
 	Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialmodel.FinancialObligationModel, error)
+	Cancel(ctx context.Context, financialObligationId int) error
+	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
 }
 
 type FinancialObligationService struct {
@@ -34,7 +36,7 @@ func (f *FinancialObligationService) GetAll(ctx context.Context, query string, a
 	financialObligations, err := f.repository.GetAll(ctx, query, args)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao criar a conta financeira:", err)
+		logger.General.Error.Println("Erro ao retornar todas as obrigações financeiras:", err)
 		return []financialresponse.FinancialObligationResponse{}, err
 	}
 
@@ -67,6 +69,8 @@ func (f *FinancialObligationService) Create(ctx context.Context, payload financi
 
 func (f *FinancialObligationService) Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialresponse.FinancialObligationResponse, error) {
 
+	logger.General.Info.Println("FinancialObligationService - Update")
+
 	validation := payload.ValidatePayload()
 
 	if len(validation) > 0 {
@@ -86,4 +90,19 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 	}
 
 	return financialmapper.ToFinancialObligationResponse(financialObligation), nil
+}
+
+func (f *FinancialObligationService) Cancel(ctx context.Context, financialObligationId int) error {
+
+	if err := f.validator.ValidateCancel(ctx, financialObligationId); err != nil {
+		logger.General.Error.Println("Erro ao validar a obrigação financeira para o cancelamento:", err)
+		return err
+	}
+
+	if err := f.repository.Cancel(ctx, financialObligationId); err != nil {
+		logger.General.Error.Println("Erro ao cancelar a obrigação financeira:", err)
+		return err
+	}
+
+	return nil
 }

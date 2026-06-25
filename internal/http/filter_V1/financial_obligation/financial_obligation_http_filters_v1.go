@@ -44,9 +44,21 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 		if err != nil {
 			logger.General.Error.Println("Erro ao converter o ID da categoria:", err)
 
-			errors["category_id"] = append(errors["category_id"], "Tipo da categoria incoerente com o tipo da obrigação financeira")
+			errors["category_id"] = append(errors["category_id"], "Tipo da categoria incoerente com o tipo da obrigação financeira.")
 		} else {
 			qb = qb.Where(squirrel.Eq{"category_id": categoryId})
+		}
+	}
+
+	if c := q.Get("id"); c != "" {
+		id, err := strconv.Atoi(c)
+
+		if err != nil {
+			logger.General.Error.Println("Erro ao converter o ID da categoria:", err)
+
+			errors["id"] = append(errors["id"], "Tipo de ID incoerente com o tipo da obrigação financeira.")
+		} else {
+			qb = qb.Where(squirrel.Eq{"id": id})
 		}
 	}
 
@@ -87,8 +99,6 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 
 	logger.General.Info.Printf("startDueDate: %s, endDueDate: %s", startDueDate, endDueDate)
 
-	var haveOneErr bool
-
 	if startDueDate != "" && endDueDate == "" {
 		errors["end_due_date"] = append(errors["end_due_date"], "A data final deve ser informada quando a data de inicio for preenchida.")
 	} else if startDueDate == "" && endDueDate != "" {
@@ -99,19 +109,17 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 		if _, err := time.Parse("2006-01-02", startDueDate); err != nil {
 			logger.General.Error.Println("Erro ao convertar a data inicial:", err)
 			errors["start_due_date"] = append(errors["start_due_date"], fmt.Sprintln("Erro ao converter a data para YYYY-MM-DD:", err))
-			haveOneErr = true
 
 		} else if _, err := time.Parse("2006-01-02", endDueDate); err != nil {
 			logger.General.Error.Println("Erro ao convertar a data final:", err)
 			errors["end_due_date"] = append(errors["end_due_date"], fmt.Sprintln("Erro ao converter a data para YYYY-MM-DD:", err))
-			haveOneErr = true
+
 		}
-	}
 
-	if !haveOneErr {
-		logger.General.Info.Println("Datas validadas")
-		qb = qb.Where(squirrel.Expr("due_date BETWEEN ? AND ?", startDueDate, endDueDate))
-
+		if errors["start_due_date"] == nil && errors["end_due_date"] == nil {
+			logger.General.Info.Println("Datas validadas")
+			qb = qb.Where(squirrel.Expr("due_date BETWEEN ? AND ?", startDueDate, endDueDate))
+		}
 	}
 
 	if len(errors) > 0 {

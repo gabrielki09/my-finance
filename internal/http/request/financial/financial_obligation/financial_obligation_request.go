@@ -1,6 +1,7 @@
 package financialobligationrequest
 
 import (
+	"context"
 	"finance/internal/apperrors"
 	mxl "finance/internal/constants/max_len"
 	financialmodel "finance/models/financial"
@@ -16,6 +17,11 @@ type FinancialObligationRequest struct {
 	DueDate        string                                   `json:"due_date" validate:"required"`
 	CompetenceDate *string                                  `json:"competence_date" validate:"required"`
 	Notes          *string                                  `json:"notes" validate:"required"`
+}
+
+type PayFinancialObligationRequest struct {
+	FinancialObligationId int     `json:"financial_obligation_id"`
+	AmountPaid            float64 `json:"amount_paid"`
 }
 
 func ValidateFinancialObligationsTypes(t financialmodel.FinancialObligationsTypes) bool {
@@ -59,6 +65,23 @@ func (f FinancialObligationRequest) ValidatePayload() apperrors.ValidationErrors
 
 	if _, err := time.Parse("2006-01-02", f.DueDate); err != nil {
 		errors["due_date"] = append(errors["due_date"], "A data de vencimento deve estar no formato YYYY-MM-DD.")
+	}
+
+	return errors
+}
+
+func (p PayFinancialObligationRequest) ValidatePayObligationPayload(ctx context.Context, financialObligationId int) apperrors.ValidationErrors {
+	errors := apperrors.ValidationErrors{}
+
+	//financial_obligation_id
+
+	if p.FinancialObligationId < 0 {
+		errors["financial_obligation_id"] = append(errors["financial_obligation_id"], "O ID da obrigação financeira não pode ser menor que zero.")
+	}
+
+	//amount_paid
+	if p.AmountPaid < 0 {
+		errors["amount_paid"] = append(errors["amount_paid"], "O valor pago não pode ser menor que zero.")
 	}
 
 	return errors

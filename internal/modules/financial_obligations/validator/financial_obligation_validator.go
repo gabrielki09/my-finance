@@ -59,7 +59,7 @@ func (f *FinancialObligationValidator) validateCategory(ctx context.Context, cat
 	}
 
 	if !isInvalidType {
-		return fmt.Errorf("Tipo da categoria incoerente com o tipo da obrigação financeira: %s", err)
+		return fmt.Errorf("Tipo da categoria incoerente com o tipo da obrigação financeira")
 	}
 
 	return nil
@@ -213,6 +213,72 @@ func (f FinancialObligationValidator) ValidateUpdatePayload(ctx context.Context,
 				errors["notes"] = append(errors["notes"], fmt.Sprintf("As notas da obrigação financeira deve ter no máximo %d caracteres.", mxl.MAX_LEN_500))
 			}
 		}
+	}
+
+	if len(errors) > 0 {
+		return apperrors.NewValidationError(errors)
+	}
+
+	return nil
+}
+
+func (f FinancialObligationValidator) ValidateCancel(ctx context.Context, financialObligationId int) error {
+	errors := apperrors.ValidationErrors{}
+
+	financialObligation, err := f.repo.FindById(ctx, financialObligationId)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		return err
+	}
+
+	switch financialObligation.Status {
+	case financialmodel.SETTLED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está paga.")
+		return apperrors.NewValidationError(errors)
+
+	case financialmodel.PARTIALLY_SETTLED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está parcialmente paga.")
+		return apperrors.NewValidationError(errors)
+
+	case financialmodel.CANCELED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira já cancelada.")
+		return apperrors.NewValidationError(errors)
+	}
+
+	if len(errors) > 0 {
+		return apperrors.NewValidationError(errors)
+	}
+
+	return nil
+}
+
+func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
+	errors := apperrors.ValidationErrors{}
+
+	financialObligation, err := f.repo.FindById(ctx, payload.FinancialObligationId)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		return err
+	}
+
+	switch financialObligation.Status {
+	case financialmodel.SETTLED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está paga.")
+		return apperrors.NewValidationError(errors)
+
+	case financialmodel.PARTIALLY_SETTLED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está parcialmente paga.")
+		return apperrors.NewValidationError(errors)
+
+	case financialmodel.CANCELED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está cancelada.")
+		return apperrors.NewValidationError(errors)
+	}
+
+	if payload.AmountPaid > financialObligation.OriginalAmount {
+		errors["amount_paid"] = append(errors["amount_paid"], "O valor pago não pode ser maior que o valor da obrigação.")
 	}
 
 	if len(errors) > 0 {
