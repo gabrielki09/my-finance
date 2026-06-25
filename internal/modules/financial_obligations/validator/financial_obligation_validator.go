@@ -4,12 +4,27 @@ import (
 	"context"
 	"finance/internal/apperrors"
 	mxl "finance/internal/constants/max_len"
-
+	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	"finance/internal/logger"
 	financialmodel "finance/models/financial"
 	"fmt"
 	"time"
 )
+
+type FinancialObligationRepository interface {
+	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTypes) (bool, error)
+	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
+}
+
+type FinancialObligationValidator struct {
+	repo FinancialObligationRepository
+}
+
+func NewFinancialObligationValidatorValidator(repo FinancialObligationRepository) *FinancialObligationValidator {
+	return &FinancialObligationValidator{
+		repo: repo,
+	}
+}
 
 func parseDates(date string) (*time.Time, error) {
 	parsedDate, err := time.Parse("2006-01-02", date)
@@ -50,7 +65,7 @@ func (f *FinancialObligationValidator) validateCategory(ctx context.Context, cat
 	return nil
 }
 
-func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payload any) error {
+func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) error {
 
 	logger.General.Info.Println("---- Vai validar o payload do movimento financeiro via db ----")
 
@@ -65,8 +80,16 @@ func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payl
 	}
 
 	//description
+	if payload.Description == "" {
+		errors["description"] = append(errors["description"], "A descrição da obrigação financeira é obrigatório.")
+	} else if len(payload.Description) > mxl.MAX_LEN_255 {
+		errors["description"] = append(errors["description"], fmt.Sprintf("A descrição da obrigação financeira deve ter no máximo %d caracteres.", mxl.MAX_LEN_255))
+	}
 
 	//type
+	if !ValidateFinancialObligationsTypes(payload.Type) {
+		errors["type"] = append(errors["type"], "O tipo da obrigação financeira está inválido.")
+	}
 
 	//original_amount
 	if payload.OriginalAmount <= 0 {
@@ -105,7 +128,7 @@ func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payl
 	return nil
 }
 
-func (f FinancialObligationValidator) ValidateUpdatePayload(ctx context.Context, payload any, financialObligationId int) error {
+func (f FinancialObligationValidator) ValidateUpdatePayload(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) error {
 	errors := apperrors.ValidationErrors{}
 
 	financialObligation, err := f.repo.FindById(ctx, financialObligationId)
@@ -199,7 +222,38 @@ func (f FinancialObligationValidator) ValidateUpdatePayload(ctx context.Context,
 	return nil
 }
 
-func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.Context, payload any) error {
+func (f FinancialObligationValidator) ValidateCancel(ctx context.Context, financialObligationId int) error {
+	errors := apperrors.ValidationErrors{}
+
+	financialObligation, err := f.repo.FindById(ctx, financialObligationId)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		return err
+	}
+
+	switch financialObligation.Status {
+	case financialmodel.SETTLED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está paga.")
+		return apperrors.NewValidationError(errors)
+
+	case financialmodel.PARTIALLY_SETTLED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está parcialmente paga.")
+		return apperrors.NewValidationError(errors)
+
+	case financialmodel.CANCELED:
+		errors["status"] = append(errors["status"], "Essa obrigação financeira já cancelada.")
+		return apperrors.NewValidationError(errors)
+	}
+
+	if len(errors) > 0 {
+		return apperrors.NewValidationError(errors)
+	}
+
+	return nil
+}
+
+func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
 	errors := apperrors.ValidationErrors{}
 
 	financialObligation, err := f.repo.FindById(ctx, payload.FinancialObligationId)
@@ -211,7 +265,7 @@ func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.C
 
 	switch financialObligation.Status {
 	case financialmodel.SETTLED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira já paga.")
+		errors["status"] = append(errors["status"], "Essa obrigação financeira está paga.")
 		return apperrors.NewValidationError(errors)
 
 	case financialmodel.PARTIALLY_SETTLED:

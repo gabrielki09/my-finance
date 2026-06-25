@@ -4,16 +4,18 @@ import (
 	"context"
 	"finance/internal/apperrors"
 	mxl "finance/internal/constants/max_len"
-	"finance/internal/logger"
 	financialmodel "finance/models/financial"
 	"fmt"
 	"time"
 )
 
+<<<<<<< HEAD
 type FinancialObligationRepository interface {
 	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTypes) (bool, error)
 	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
 }
+=======
+>>>>>>> parent of 7e7f88f (To convert validator -> request)
 type FinancialObligationRequest struct {
 	CategoryId     int                                      `json:"category_id" validate:"required"`
 	Description    string                                   `json:"description" validate:"required"`
@@ -22,18 +24,11 @@ type FinancialObligationRequest struct {
 	DueDate        string                                   `json:"due_date" validate:"required"`
 	CompetenceDate *string                                  `json:"competence_date" validate:"required"`
 	Notes          *string                                  `json:"notes" validate:"required"`
-	repo           FinancialObligationRepository
 }
 
 type PayFinancialObligationRequest struct {
 	FinancialObligationId int     `json:"financial_obligation_id"`
 	AmountPaid            float64 `json:"amount_paid"`
-}
-
-func NewFinancialObligationRequest(repo FinancialObligationRepository) *FinancialObligationRequest {
-	return &FinancialObligationRequest{
-		repo: repo,
-	}
 }
 
 func ValidateFinancialObligationsTypes(t financialmodel.FinancialObligationsTypes) bool {
@@ -51,7 +46,7 @@ func ValidateFinancialObligationsTypes(t financialmodel.FinancialObligationsType
 func (f FinancialObligationRequest) ValidatePayload() apperrors.ValidationErrors {
 	errors := apperrors.ValidationErrors{}
 
-	if f.CategoryId <= 0 {
+	if f.CategoryId < 0 {
 		errors["category_id"] = append(errors["parent_id"], "O ID de referência da categoria não pode ser menor que zero.")
 	}
 
@@ -87,45 +82,14 @@ func (p PayFinancialObligationRequest) ValidatePayObligationPayload(ctx context.
 
 	//financial_obligation_id
 
-	if p.FinancialObligationId <= 0 {
+	if p.FinancialObligationId < 0 {
 		errors["financial_obligation_id"] = append(errors["financial_obligation_id"], "O ID da obrigação financeira não pode ser menor que zero.")
 	}
 
 	//amount_paid
-	if p.AmountPaid <= 0 {
+	if p.AmountPaid < 0 {
 		errors["amount_paid"] = append(errors["amount_paid"], "O valor pago não pode ser menor que zero.")
 	}
 
 	return errors
-}
-
-func (f FinancialObligationRequest) ValidateCancel(ctx context.Context, financialObligationId int) error {
-	errors := apperrors.ValidationErrors{}
-
-	financialObligation, err := f.repo.FindById(ctx, financialObligationId)
-
-	if err != nil {
-		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
-		return err
-	}
-
-	switch financialObligation.Status {
-	case financialmodel.SETTLED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira está paga.")
-		return apperrors.NewValidationError(errors)
-
-	case financialmodel.PARTIALLY_SETTLED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira está parcialmente paga.")
-		return apperrors.NewValidationError(errors)
-
-	case financialmodel.CANCELED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira já cancelada.")
-		return apperrors.NewValidationError(errors)
-	}
-
-	if len(errors) > 0 {
-		return apperrors.NewValidationError(errors)
-	}
-
-	return nil
 }
