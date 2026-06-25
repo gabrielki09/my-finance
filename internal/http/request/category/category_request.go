@@ -1,6 +1,7 @@
 package categoryrequest
 
 import (
+	"context"
 	"finance/internal/apperrors"
 	mxl "finance/internal/constants/max_len"
 	"finance/internal/logger"
@@ -9,11 +10,22 @@ import (
 	"strings"
 )
 
+type CategoryRepository interface {
+	VerifyParentId(ctx context.Context, parentId int) (bool, error)
+	VerifyExistsCategoryName(ctx context.Context, categoryName string) (*categorymodel.CategoryModel, error)
+}
 type CategoryRequest struct {
 	Id       int
 	ParentId *int                        `json:"parent_id" validate:"sometimes,numeric"`
 	Name     string                      `json:"name" validate:"required"`
 	Type     categorymodel.CategoryTpyes `json:"type" validate:"required"`
+	repo     CategoryRepository
+}
+
+func NewCategoryRequest(repo CategoryRepository) *CategoryRequest {
+	return &CategoryRequest{
+		repo: repo,
+	}
 }
 
 func validateType(t categorymodel.CategoryTpyes) bool {
@@ -30,7 +42,7 @@ func validateType(t categorymodel.CategoryTpyes) bool {
 }
 
 func (c CategoryRequest) ValidatePayload() apperrors.ValidationErrors {
-	logger.General.Info.Println("---- Vai validar o payload da categoria via request ----")
+	logger.General.Info.Println("---- Vai validar o payload inicial da categoria ----")
 
 	errors := apperrors.ValidationErrors{}
 
@@ -50,12 +62,8 @@ func (c CategoryRequest) ValidatePayload() apperrors.ValidationErrors {
 	}
 
 	if c.ParentId != nil {
-		if *c.ParentId < 0 {
-			errors["parent_id"] = append(errors["parent_id"], "O ID de referência não pode ser menor que zero.")
-		}
-
 		if *c.ParentId == c.Id {
-			errors["parent_id"] = append(errors["parent_id"], "O ID de referência não pode ser o mesmo ID do registro.")
+			errors["parent_id"] = append(errors["parent_id"], "O ID da categoria pai não pode ser o mesmo ID do registro.")
 		}
 	}
 

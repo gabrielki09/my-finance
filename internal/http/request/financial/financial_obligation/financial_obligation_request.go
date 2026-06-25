@@ -14,7 +14,6 @@ type FinancialObligationRepository interface {
 	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTypes) (bool, error)
 	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
 }
-
 type FinancialObligationRequest struct {
 	CategoryId     int                                      `json:"category_id" validate:"required"`
 	Description    string                                   `json:"description" validate:"required"`

@@ -13,7 +13,6 @@ type CategoryRepository interface {
 	VerifyParentId(ctx context.Context, parentId int) (bool, error)
 	VerifyExistsCategoryName(ctx context.Context, categoryName string) (*categorymodel.CategoryModel, error)
 }
-
 type CategoryValidator struct {
 	repo CategoryRepository
 }

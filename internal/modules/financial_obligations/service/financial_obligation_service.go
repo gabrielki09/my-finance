@@ -19,14 +19,14 @@ type FinancialObligationRepository interface {
 }
 
 type FinancialObligationService struct {
-	repository                 FinancialObligationRepository
-	financialobligationrequest financialobligationrequest.FinancialObligationRequest
+	repository FinancialObligationRepository
+	request    financialobligationrequest.FinancialObligationRequest
 }
 
 func NewFinancialObligationService(repository FinancialObligationRepository, financialobligationrequest *financialobligationrequest.FinancialObligationRequest) *FinancialObligationService {
 	return &FinancialObligationService{
-		repository:                 repository,
-		financialobligationrequest: *financialobligationrequest,
+		repository: repository,
+		request:    *financialobligationrequest,
 	}
 }
 
@@ -83,7 +83,7 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 
 func (f *FinancialObligationService) Cancel(ctx context.Context, financialObligationId int) error {
 
-	if err := f.financialobligationrequest.ValidateCancel(ctx, financialObligationId); err != nil {
+	if err := f.request.ValidateCancel(ctx, financialObligationId); err != nil {
 		logger.General.Error.Println("Erro ao validar a obrigação financeira para o cancelamento:", err)
 		return err
 	}
