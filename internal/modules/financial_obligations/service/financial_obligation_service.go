@@ -7,7 +7,6 @@ import (
 	financialresponse "finance/internal/http/response/financial"
 	"finance/internal/logger"
 	financialmapper "finance/internal/mapper/financial"
-	financialobligationvalidator "finance/internal/modules/financial_obligations/validator"
 	financialmodel "finance/models/financial"
 )
 
@@ -20,14 +19,14 @@ type FinancialObligationRepository interface {
 }
 
 type FinancialObligationService struct {
-	repository FinancialObligationRepository
-	validator  *financialobligationvalidator.FinancialObligationValidator
+	repository                 FinancialObligationRepository
+	financialobligationrequest financialobligationrequest.FinancialObligationRequest
 }
 
-func NewFinancialObligationService(repository FinancialObligationRepository, validator *financialobligationvalidator.FinancialObligationValidator) *FinancialObligationService {
+func NewFinancialObligationService(repository FinancialObligationRepository, financialobligationrequest *financialobligationrequest.FinancialObligationRequest) *FinancialObligationService {
 	return &FinancialObligationService{
-		repository: repository,
-		validator:  validator,
+		repository:                 repository,
+		financialobligationrequest: *financialobligationrequest,
 	}
 }
 
@@ -52,11 +51,6 @@ func (f *FinancialObligationService) Create(ctx context.Context, payload financi
 		return financialresponse.FinancialObligationResponse{}, apperrors.NewValidationError(validation)
 	}
 
-	if err := f.validator.ValidatePayload(ctx, payload); err != nil {
-		logger.General.Error.Println("Erro na validação de dados:", err)
-		return financialresponse.FinancialObligationResponse{}, err
-	}
-
 	financialObligation, err := f.repository.Create(ctx, payload)
 
 	if err != nil {
@@ -77,11 +71,6 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 		return financialresponse.FinancialObligationResponse{}, apperrors.NewValidationError(validation)
 	}
 
-	if err := f.validator.ValidateUpdatePayload(ctx, payload, financialObligationId); err != nil {
-		logger.General.Error.Println("Erro na validação de dados:", err)
-		return financialresponse.FinancialObligationResponse{}, err
-	}
-
 	financialObligation, err := f.repository.Update(ctx, payload, financialObligationId)
 
 	if err != nil {
@@ -94,7 +83,7 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 
 func (f *FinancialObligationService) Cancel(ctx context.Context, financialObligationId int) error {
 
-	if err := f.validator.ValidateCancel(ctx, financialObligationId); err != nil {
+	if err := f.financialobligationrequest.ValidateCancel(ctx, financialObligationId); err != nil {
 		logger.General.Error.Println("Erro ao validar a obrigação financeira para o cancelamento:", err)
 		return err
 	}
