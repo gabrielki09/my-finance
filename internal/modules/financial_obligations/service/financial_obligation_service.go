@@ -21,21 +21,13 @@ type FinancialObligationRepository interface {
 
 type FinancialObligationService struct {
 	repository FinancialObligationRepository
-<<<<<<< HEAD
-	request    financialobligationrequest.FinancialObligationRequest
-=======
 	validator  *financialobligationvalidator.FinancialObligationValidator
->>>>>>> parent of 7e7f88f (To convert validator -> request)
 }
 
 func NewFinancialObligationService(repository FinancialObligationRepository, validator *financialobligationvalidator.FinancialObligationValidator) *FinancialObligationService {
 	return &FinancialObligationService{
 		repository: repository,
-<<<<<<< HEAD
-		request:    *financialobligationrequest,
-=======
 		validator:  validator,
->>>>>>> parent of 7e7f88f (To convert validator -> request)
 	}
 }
 
@@ -102,11 +94,7 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 
 func (f *FinancialObligationService) Cancel(ctx context.Context, financialObligationId int) error {
 
-<<<<<<< HEAD
-	if err := f.request.ValidateCancel(ctx, financialObligationId); err != nil {
-=======
 	if err := f.validator.ValidateCancel(ctx, financialObligationId); err != nil {
->>>>>>> parent of 7e7f88f (To convert validator -> request)
 		logger.General.Error.Println("Erro ao validar a obrigação financeira para o cancelamento:", err)
 		return err
 	}

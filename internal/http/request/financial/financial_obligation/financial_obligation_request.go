@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-<<<<<<< HEAD
-type FinancialObligationRepository interface {
-	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTypes) (bool, error)
-	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
-}
-=======
->>>>>>> parent of 7e7f88f (To convert validator -> request)
 type FinancialObligationRequest struct {
 	CategoryId     int                                      `json:"category_id" validate:"required"`
 	Description    string                                   `json:"description" validate:"required"`

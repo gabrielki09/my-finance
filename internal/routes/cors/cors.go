@@ -7,6 +7,7 @@ import (
 )
 
 var allowedOrigins = map[string]bool{
+	"http://localhost:5174": true,
 	"http://localhost:9000": true,
 	"http://127.0.0.1:9000": true,
 	"http://localhost:9090": true,
