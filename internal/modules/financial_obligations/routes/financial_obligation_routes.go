@@ -19,5 +19,7 @@ func RegisterFinancialObligationRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	r.HandleFunc("GET /financial-obligation", controller.GetAll)
 	r.HandleFunc("POST /financial-obligation", controller.Create)
 	r.HandleFunc("PUT /financial-obligation/{id}", controller.Update)
-	r.HandleFunc("DELETE /financial-obligation/{id}", controller.Cancel)
+	r.HandleFunc("DELETE /financial-obligation/cancel/{id}", controller.Cancel)
+	r.HandleFunc("POST /financial-obligation/pay", controller.Pay)
+
 }

@@ -20,6 +20,7 @@ type FinancialObligationService interface {
 	GetAll(context.Context, string, []any) ([]financialresponse.FinancialObligationResponse, error)
 	Create(context.Context, financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error)
 	Update(context.Context, financialobligationrequest.FinancialObligationRequest, int) (financialresponse.FinancialObligationResponse, error)
+	Pay(context.Context, financialobligationrequest.PayFinancialObligationRequest) error
 	Cancel(context.Context, int) error
 }
 
@@ -189,6 +190,36 @@ func (f *FinancialObligationController) Cancel(w http.ResponseWriter, r *http.Re
 
 	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
 		"Obrigações financeira cancelada com sucesso",
+		map[string]any{},
+	))
+}
+
+func (f *FinancialObligationController) Pay(w http.ResponseWriter, r *http.Request) {
+	var payload financialobligationrequest.PayFinancialObligationRequest
+
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&payload); err != nil {
+		logger.General.Error.Println("Erro:", err)
+
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao ler os dados",
+			httpx.DecodeErrorMessage(err),
+		))
+		return
+	}
+
+	if err := f.service.Pay(r.Context(), payload); err != nil {
+		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
+			"Erro ao pagar a obrigação financeira",
+			map[string]any{"error": err.Error()},
+		))
+		return
+	}
+
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
+		"Obrigações financeira paga com sucesso",
 		map[string]any{},
 	))
 }
