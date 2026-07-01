@@ -21,6 +21,8 @@ type FinancialObligationRequest struct {
 
 type PayFinancialObligationRequest struct {
 	FinancialObligationId int     `json:"financial_obligation_id"`
+	FinancialAccountId    int     `json:"financial_account_id"`
+	PaymentDate           string  `json:"payment_date"`
 	AmountPaid            float64 `json:"amount_paid"`
 }
 

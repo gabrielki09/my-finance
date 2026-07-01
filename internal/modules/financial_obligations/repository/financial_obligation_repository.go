@@ -6,6 +6,7 @@ import (
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	"finance/internal/logger"
 	financialmodel "finance/models/financial"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -355,9 +356,42 @@ func (f *FinancialObligationRepository) Pay(ctx context.Context, payload financi
 		ctx,
 		f.db,
 		func(tx pgx.Tx) error {
-			financialObligation, err := f.FindById(ctx, payload.FinancialObligationId)
+			var financialObligation financialmodel.FinancialObligationModel
 
-			if err != nil {
+			if err := tx.QueryRow(
+				ctx,
+				`
+					SELECT
+						id,
+						category_id,
+						description,
+						type,
+						status,
+						original_amount,
+						due_date,
+						competence_date,
+						notes
+					FROM	
+						financial_obligations
+					WHERE
+						id = $1	AND
+						deleted_at IS NULL			
+
+					FOR UPDATE
+				`,
+				payload.FinancialObligationId,
+			).Scan(
+				&financialObligation.Id,
+				&financialObligation.CategoryId,
+				&financialObligation.Description,
+				&financialObligation.Type,
+				&financialObligation.Status,
+				&financialObligation.OriginalAmount,
+				&financialObligation.DueDate,
+				&financialObligation.CompetenceDate,
+				&financialObligation.Notes,
+			); err != nil {
+				logger.General.Error.Println("Erro ao localizar a obrigação financeiro pelo ID:", err)
 				return err
 			}
 
@@ -365,23 +399,9 @@ func (f *FinancialObligationRepository) Pay(ctx context.Context, payload financi
 
 			if payload.AmountPaid == financialObligation.OriginalAmount {
 				logger.General.Info.Println("O valor pago é igual o da obrigação financeira:", payload.AmountPaid)
-				if _, err := tx.Exec(
-					ctx,
-					`
-						UPDATE 
-							financial_obligations
-						SET
-							status = 'settled'
-						WHERE
-							id = $1
-					`,
-					payload.FinancialObligationId,
-				); err != nil {
-					logger.General.Error.Println("Erro ao definir o status como pago:", err)
-					return err
-				}
 
-				if _, err := tx.Exec(
+				var financialTransactionId int
+				if err := tx.QueryRow(
 					ctx,
 					`
 						INSERT INTO financial_transactions
@@ -396,11 +416,91 @@ func (f *FinancialObligationRepository) Pay(ctx context.Context, payload financi
 								movement_date,
 								reference_date,
 								origin_type,
-								origin_id,
-								idempotency_key
+								origin_id
 							)
-
 						VALUES
+							(
+								$1,
+								$2,
+								$3,
+								$4,
+								$5,
+								$6,
+								$7,
+								$8,
+								$9,
+								$10,
+								$11
+							)
+						RETURNING
+							id
+					`,
+					payload.FinancialAccountId,
+					financialObligation.CategoryId,
+					nil,
+					fmt.Sprintf("Pagamento da obrigação finaceira N° %d ", financialObligation.Id),
+					financialmodel.EXIT,
+					financialmodel.ORIGINAL,
+					payload.AmountPaid,
+					payload.PaymentDate,
+					financialObligation.DueDate,
+					"financial_obligation",
+					payload.FinancialObligationId,
+				).Scan(&financialTransactionId); err != nil {
+					logger.General.Error.Println("Erro ao criar o registro da transação do pagamento da obrigação financeira:", err)
+					return err
+				}
+
+				if _, err := tx.Exec(
+					ctx,
+					`
+						INSERT INTO obligation_settlements
+							(
+								obligation_id,
+								transaction_id,
+								amount
+							)
+						VALUES
+							(
+								$1,
+								$2, 
+								$3
+							)
+					`,
+					payload.FinancialObligationId,
+					financialTransactionId,
+					payload.AmountPaid,
+				); err != nil {
+					logger.General.Error.Println("Erro ao criar o registro de pagamento da obrigação financeira:", err)
+					return err
+				}
+
+				if _, err := tx.Exec(
+					ctx,
+					`
+						UPDATE 
+							financial_obligations
+						SET
+							status = 'settled',
+							updated_at = now()
+						WHERE
+							id = $1
+					`,
+					payload.FinancialObligationId,
+				); err != nil {
+					logger.General.Error.Println("Erro ao definir o status como pago:", err)
+					return err
+				}
+			}
+
+			if payload.AmountPaid < financialObligation.OriginalAmount {
+				logger.General.Info.Println("O valor pago é menor do que da obrigação financeira:", payload.AmountPaid)
+
+				var financialTransactionId int
+				if err := tx.QueryRow(
+					ctx,
+					`
+						INSERT INTO financial_transactions
 							(
 								financial_account_id,
 								category_id,
@@ -412,13 +512,37 @@ func (f *FinancialObligationRepository) Pay(ctx context.Context, payload financi
 								movement_date,
 								reference_date,
 								origin_type,
-								origin_id,
-								idempotency_key
+								origin_id
 							)
+						VALUES
+							(
+								$1,
+								$2,
+								$3,
+								$4,
+								$5,
+								$6,
+								$7,
+								$8,
+								$9,
+								$10,
+								$11
+							)
+						RETURNING
+							id
 					`,
-
+					payload.FinancialAccountId,
+					financialObligation.CategoryId,
+					nil,
+					fmt.Sprintf("Pagamento parcial da obrigação finaceira N° %d ", financialObligation.Id),
+					financialmodel.EXIT,
+					financialmodel.ORIGINAL,
+					payload.AmountPaid,
+					payload.PaymentDate,
+					financialObligation.DueDate,
+					"financial_obligation",
 					payload.FinancialObligationId,
-				); err != nil {
+				).Scan(&financialTransactionId); err != nil {
 					logger.General.Error.Println("Erro ao criar o registro da transação do pagamento da obrigação financeira:", err)
 					return err
 				}
@@ -428,11 +552,10 @@ func (f *FinancialObligationRepository) Pay(ctx context.Context, payload financi
 					`
 						INSERT INTO obligation_settlements
 							(
-							obligation_id,
-							transaction_id,
-							amount
-						)
-							
+								obligation_id,
+								transaction_id,
+								amount
+							)
 						VALUES
 							(
 								$1,
@@ -440,17 +563,38 @@ func (f *FinancialObligationRepository) Pay(ctx context.Context, payload financi
 								$3
 							)
 					`,
-
 					payload.FinancialObligationId,
+					financialTransactionId,
+					payload.AmountPaid,
 				); err != nil {
 					logger.General.Error.Println("Erro ao criar o registro de pagamento da obrigação financeira:", err)
+					return err
+				}
+
+				if _, err := tx.Exec(
+					ctx,
+					`
+						UPDATE 
+							financial_obligations
+						SET
+							status = 'partially_settled',
+							updated_at = now()
+						WHERE
+							id = $1
+					`,
+					payload.FinancialObligationId,
+				); err != nil {
+					logger.General.Error.Println("Erro ao definir o status como pago:", err)
 					return err
 				}
 			}
 
 			return nil
 		}); err != nil {
+
+		logger.General.Error.Println("Erro durante a transação de pagamento:", err)
 		return err
+
 	}
 
 	return nil

@@ -15,6 +15,10 @@ import (
 var Pool *pgxpool.Pool
 
 func Init() (*pgxpool.Pool, error) {
+	if err := godotenv.Load(); err != nil {
+		log.Fatal("Erro carregar a .env:", err)
+	}
+
 	if Pool != nil {
 		return Pool, nil
 	}
@@ -31,13 +35,15 @@ func Init() (*pgxpool.Pool, error) {
 	dbPassword := os.Getenv("DB_PASSWORD")
 
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		"host=%s port=%s user=%s password=%s dbname=%s",
 		dbHost,
 		dbPort,
 		dbUser,
 		dbPassword,
 		dbName,
 	)
+
+	fmt.Println(dsn)
 
 	config, err := pgxpool.ParseConfig(dsn)
 

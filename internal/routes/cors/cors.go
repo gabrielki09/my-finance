@@ -1,9 +1,7 @@
 package cors
 
 import (
-	"finance/internal/logger"
 	"net/http"
-	"os"
 )
 
 var allowedOrigins = map[string]bool{
@@ -31,12 +29,6 @@ func WithCORS(next http.Handler) http.Handler {
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)
 			return
-		}
-
-		appEnv := os.Getenv("APP_ENV")
-
-		if appEnv == "prod" {
-			logger.General.Info.Println("Origem da requisição:", origin)
 		}
 
 		next.ServeHTTP(w, r)
