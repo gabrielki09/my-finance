@@ -1,7 +1,7 @@
 .env
 .env.local
 .ideia
-/internal/database/migration/schema.sql
+/internal/database/migration/sql
 /internal/routes/middleware
 /jsons
 *.md
