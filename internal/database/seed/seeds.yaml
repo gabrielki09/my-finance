@@ -1,0 +1,13 @@
+accounts:
+  - name: Carteira
+    type: cash
+
+  - name: Banco
+    type: digital
+
+categories:
+  - name: Alimentação
+    type: expense
+
+  - name: Salário
+    type: income
