@@ -1,6 +1,7 @@
 package seed
 
 import (
+	"context"
 	"embed"
 	"finance/internal/logger"
 	categorymodel "finance/models/category"
@@ -25,8 +26,8 @@ type CategorySeed struct {
 }
 
 type SeederFile struct {
+	Accounts   []AccountSeed  `yaml:"accounts"`
 	Categories []CategorySeed `yaml:"categories"`
-	Accounts   []AccountSeed  `yaml:"categories"`
 }
 
 func splitSeeds(s string) []string {
@@ -39,19 +40,6 @@ func splitSeeds(s string) []string {
 	}
 
 	return splited
-}
-
-func getFileName(s string) string {
-	var name string
-
-	switch s {
-	case "category":
-		name = "category.yaml"
-	case "teste":
-		name = "teste.yaml"
-	}
-
-	return name
 }
 
 func parseYAMLFile(seed string) (SeederFile, error) {
@@ -72,7 +60,7 @@ func parseYAMLFile(seed string) (SeederFile, error) {
 	return data, nil
 }
 
-func HandleSeeds(db *pgxpool.Pool, seed *string) (err error) {
+func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error) {
 	offPointerSeed := strings.TrimSpace(*seed)
 
 	if offPointerSeed == "all" {
@@ -87,9 +75,13 @@ func HandleSeeds(db *pgxpool.Pool, seed *string) (err error) {
 	for _, seed := range splitedSeeds {
 		switch seed {
 		case "category":
-			_, err := parseYAMLFile(getFileName(seed))
+			data, err := parseYAMLFile(seed)
 
 			if err != nil {
+				return err
+			}
+
+			if err := runItems[CategorySeed](ctx, data.Categories); err != nil {
 				return err
 			}
 
@@ -98,4 +90,11 @@ func HandleSeeds(db *pgxpool.Pool, seed *string) (err error) {
 
 	logger.General.Info.Println("Script:", collectedSeeds)
 	return err
+}
+
+func runItems[T any](
+	ctx context.Context,
+	item []T,
+) error {
+	return nil
 }

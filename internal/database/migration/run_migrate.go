@@ -3,6 +3,7 @@ package migration
 import (
 	"context"
 	_ "embed"
+	"finance/internal/constants/colors"
 	"finance/internal/logger"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,29 +15,44 @@ var upSchemaSQL string
 //go:embed sql/down.sql
 var downSchemaSQL string
 
-func RunMigrate(db *pgxpool.Pool) (err error) {
-	ctx := context.Background()
-
-	logger.General.Info.Println("Script:", upSchemaSQL)
-
-	tx, err := db.Begin(ctx)
-
-	if err != nil {
-		return err
-	}
-
-	if _, err := tx.Exec(
+func runUp(ctx context.Context, db *pgxpool.Pool) (err error) {
+	if _, err := db.Exec(
 		ctx,
 		upSchemaSQL,
 	); err != nil {
-		logger.General.Error.Println("Erro ao rodar a migrate:", err)
+
 		return err
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		logger.General.Error.Println("Erro ao commitar a migrate:", err)
+	return err
+}
+
+func runDown(ctx context.Context, db *pgxpool.Pool) (err error) {
+	if _, err := db.Exec(
+		ctx,
+		downSchemaSQL,
+	); err != nil {
+
 		return err
 	}
+
+	return err
+}
+
+func HandleMigrate(ctx context.Context, db *pgxpool.Pool) (err error) {
+	if err := runDown(ctx, db); err != nil {
+		logger.General.Error.Println("Erro ao dropar todas as tabelas:", err)
+		return err
+	}
+
+	logger.General.Info.Println(colors.Green + "Tabelas dropadas com sucesso!")
+
+	if err := runUp(ctx, db); err != nil {
+		logger.General.Error.Println("Erro ao roda a migrate:", err)
+		return err
+	}
+
+	logger.General.Info.Println(colors.Green + "Tabelas recriadas com sucesso!")
 
 	return err
 }

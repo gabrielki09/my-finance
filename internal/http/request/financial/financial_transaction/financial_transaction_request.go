@@ -85,8 +85,6 @@ func (f FinancialTransactionRequest) ValidatePayload() apperrors.ValidationError
 		errors["reference_date"] = append(errors["reference_date"], "A data de referência deve estar no formato YYYY-MM-DD.")
 	}
 
-	//IdempotencyKey idempotency_key
-
 	//MovementType movement_type
 	if !validateFinancialTransactionsMovementType(f.MovementType) {
 		errors["movement_type"] = append(errors["movement_type"], "O tipo da movimentação financeira está inválido.")
