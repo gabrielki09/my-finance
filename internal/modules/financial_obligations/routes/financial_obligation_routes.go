@@ -1,6 +1,7 @@
 package financialobligationsroutes
 
 import (
+	financialaccountrepository "finance/internal/modules/financial_accounts/repository"
 	financialobligationcontroller "finance/internal/modules/financial_obligations/controller"
 	financialobligationrepository "finance/internal/modules/financial_obligations/repository"
 	financialobligationservice "finance/internal/modules/financial_obligations/service"
@@ -12,7 +13,9 @@ import (
 
 func RegisterFinancialObligationRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	repo := financialobligationrepository.NewFinancialObligationRepository(db)
-	validator := financialobligationvalidator.NewFinancialObligationValidatorValidator(repo)
+	financialAccountRepository := financialaccountrepository.NewFinancialAccountRepository(db)
+
+	validator := financialobligationvalidator.NewFinancialObligationValidatorValidator(repo, financialAccountRepository)
 	service := financialobligationservice.NewFinancialObligationService(repo, validator)
 	controller := financialobligationcontroller.NewFinancialObligationController(service)
 

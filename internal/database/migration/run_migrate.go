@@ -3,7 +3,6 @@ package migration
 import (
 	"context"
 	_ "embed"
-	"finance/internal/constants/colors"
 	"finance/internal/logger"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -39,20 +38,32 @@ func runDown(ctx context.Context, db *pgxpool.Pool) (err error) {
 	return err
 }
 
-func HandleMigrate(ctx context.Context, db *pgxpool.Pool) (err error) {
-	if err := runDown(ctx, db); err != nil {
-		logger.General.Error.Println("Erro ao dropar todas as tabelas:", err)
-		return err
+func HandleMigrate(ctx context.Context, db *pgxpool.Pool, migrateType string) (err error) {
+	logger.General.Info.Println("migrateType: ", migrateType)
+
+	if migrateType == "migrate" {
+		if err := runUp(ctx, db); err != nil {
+			logger.General.Error.Println("Erro ao roda a migrate:", err)
+			return err
+		}
+
+		logger.General.Info.Println("Novas tabelas criadas com sucesso!")
 	}
 
-	logger.General.Info.Println(colors.Green + "Tabelas dropadas com sucesso!")
+	if migrateType == "migrate:fre" {
+		if err := runDown(ctx, db); err != nil {
+			logger.General.Error.Println("Erro ao dropar todas as tabelas:", err)
+			return err
+		}
+		logger.General.Info.Println("Tabelas dropadas com sucesso!")
 
-	if err := runUp(ctx, db); err != nil {
-		logger.General.Error.Println("Erro ao roda a migrate:", err)
-		return err
+		if err := runUp(ctx, db); err != nil {
+			logger.General.Error.Println("Erro ao roda a migrate:", err)
+			return err
+		}
+
+		logger.General.Info.Println("Tabelas recriadas com sucesso!")
 	}
-
-	logger.General.Info.Println(colors.Green + "Tabelas recriadas com sucesso!")
 
 	return err
 }

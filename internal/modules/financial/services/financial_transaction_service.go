@@ -68,7 +68,6 @@ func (f *FinancialTransactionService) FindByKey(ctx context.Context, key string)
 }
 
 func (f *FinancialTransactionService) CreateMovement(ctx context.Context, payload financialtransactionrequest.FinancialTransactionRequest) (financialresponse.FinancialTransactionsResponse, error) {
-
 	validation := payload.ValidatePayload()
 
 	if len(validation) > 0 {

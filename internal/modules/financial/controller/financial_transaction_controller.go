@@ -176,6 +176,16 @@ func (f *FinancialTransactionController) CancelMovement(w http.ResponseWriter, r
 	}
 
 	if err := f.service.CancelMovement(r.Context(), payload); err != nil {
+		var validationErr *apperrors.ValidationError
+
+		if errors.As(err, &validationErr) {
+			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
+				"Erro de validação",
+				validationErr.Errors,
+			))
+			return
+		}
+
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao cancelar a transação financeira",
 			map[string]any{"error": err.Error()},

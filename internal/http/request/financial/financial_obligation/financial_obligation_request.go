@@ -22,8 +22,8 @@ type FinancialObligationRequest struct {
 type PayFinancialObligationRequest struct {
 	FinancialObligationId int     `json:"financial_obligation_id"`
 	FinancialAccountId    int     `json:"financial_account_id"`
-	PaymentDate           string  `json:"payment_date"`
 	AmountPaid            float64 `json:"amount_paid"`
+	PaymentDate           string  `json:"payment_date"`
 }
 
 func ValidateFinancialObligationsTypes(t financialmodel.FinancialObligationsTypes) bool {
@@ -76,14 +76,27 @@ func (p PayFinancialObligationRequest) ValidatePayObligationPayload(ctx context.
 	errors := apperrors.ValidationErrors{}
 
 	//financial_obligation_id
-
 	if p.FinancialObligationId < 0 {
 		errors["financial_obligation_id"] = append(errors["financial_obligation_id"], "O ID da obrigação financeira não pode ser menor que zero.")
+	}
+
+	//financial_account_id
+	if p.FinancialAccountId < 0 {
+		errors["financial_account_id"] = append(errors["financial_account_id"], "O ID da conta financeira não pode ser menor que zero.")
 	}
 
 	//amount_paid
 	if p.AmountPaid < 0 {
 		errors["amount_paid"] = append(errors["amount_paid"], "O valor pago não pode ser menor que zero.")
+	}
+
+	//payment_date
+	if p.PaymentDate == "" {
+		errors["payment_date"] = append(errors["payment_date"], "A data de pagamento precisa ser informada.")
+	}
+
+	if _, err := time.Parse("2006-01-02", p.PaymentDate); err != nil {
+		errors["payment_date"] = append(errors["payment_date"], "A data de pagamento deve estar no formato YYYY-MM-DD.")
 	}
 
 	return errors

@@ -328,9 +328,9 @@ func (f *FinancialTransactionRepository) CreateMovement(ctx context.Context, pay
 	return financialTransaction, err
 }
 
-func (c *FinancialTransactionRepository) CancelMovement(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) (err error) {
+func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) (err error) {
 
-	isNotCanceled, err := c.CheckIsNotCanceled(ctx, payload)
+	isNotCanceled, err := f.CheckIsNotCanceled(ctx, payload)
 
 	if !isNotCanceled {
 		return fmt.Errorf("Transação já cancelada.")
@@ -338,15 +338,15 @@ func (c *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 
 	err = transactionhelper.WithTransaction(
 		ctx,
-		c.db,
+		f.db,
 		func(tx pgx.Tx) error {
 			var financialTransaction financialmodel.FinancialTransactionsModel
 
 			if payload.Id != nil {
-				financialTransaction, _ = c.FindById(ctx, *payload.Id)
+				financialTransaction, _ = f.FindById(ctx, *payload.Id)
 
 			} else if (payload.IdempotencyKey) != nil {
-				financialTransaction, _ = c.FindByKey(ctx, *payload.IdempotencyKey)
+				financialTransaction, _ = f.FindByKey(ctx, *payload.IdempotencyKey)
 			}
 
 			if financialTransaction.MovementType == "entry" {
@@ -438,23 +438,45 @@ func (c *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 	return err
 }
 
-func (c *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialTransactionsMovementType) (bool, error) {
+func (f *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialTransactionsMovementType) (bool, error) {
 	var checkedCategoryType bool
+	var exists bool
+
+	if err := f.db.QueryRow(
+		ctx,
+		`
+			SELECT EXISTS
+				(
+					SELECT
+						id
+					FROM
+						categories
+					WHERE
+						id = $1
+				)
+		`,
+		categoryId,
+	).Scan(
+		&exists,
+	); err != nil {
+
+		return false, err
+	}
 
 	switch movementType {
 	case financialmodel.ENTRY:
-		if err := c.db.QueryRow(
+		if err := f.db.QueryRow(
 			ctx,
 			`
-			SELECT
-				CASE 
-					WHEN c."type" = 'expense' THEN true
-					ELSE false
-				END AS is_expense
-			FROM 
-				categories c 
-			WHERE
-				id = $1
+				SELECT
+					CASE 
+						WHEN c."type" = 'expense' THEN true
+						ELSE false
+					END AS is_expense
+				FROM 
+					categories c 
+				WHERE
+					id = $1
 			`,
 			categoryId,
 		).Scan(&checkedCategoryType); err != nil {
@@ -462,7 +484,7 @@ func (c *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, 
 			return false, err
 		}
 	case financialmodel.EXIT:
-		if err := c.db.QueryRow(
+		if err := f.db.QueryRow(
 			ctx,
 			`
 				SELECT
@@ -487,15 +509,46 @@ func (c *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, 
 	return checkedCategoryType, nil
 }
 
-func (c *FinancialTransactionRepository) CheckIsNotCanceled(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) (bool, error) {
+func (f *FinancialTransactionRepository) ValidateIsSameIdAndIdempotencyKey(ctx context.Context, financialTransactionId int, idempotencyKey string) (exists bool, err error) {
+	logger.General.Info.Println("Called ValidateIsSameIdAndIdempotencyKey")
+
+	if err := f.db.QueryRow(
+		ctx,
+		`
+			SELECT EXISTS 
+				(
+					SELECT
+						1
+					FROM
+						financial_transactions
+					WHERE
+						(
+							id = $1 
+							OR idempotency_key = $2
+						)
+				)
+		`,
+		financialTransactionId,
+		idempotencyKey,
+	).Scan(
+		&exists,
+	); err != nil {
+		logger.General.Error.Println("Erro ao conferir se a transação existe:", err)
+		return exists, err
+	}
+
+	return exists, err
+}
+
+func (f *FinancialTransactionRepository) CheckIsNotCanceled(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) (bool, error) {
 	var isNotCanceled bool
 
 	if payload.Id != nil && payload.IdempotencyKey == nil {
-		if err := c.db.QueryRow(
+		if err := f.db.QueryRow(
 			ctx,
 			`
 				SELECT
-					cASE
+					CASE
 						WHEN canceled_at IS NULL THEN true
 						ELSE false
 					END AS is_not_canceled
@@ -511,11 +564,11 @@ func (c *FinancialTransactionRepository) CheckIsNotCanceled(ctx context.Context,
 	}
 
 	if payload.Id == nil && payload.IdempotencyKey != nil {
-		if err := c.db.QueryRow(
+		if err := f.db.QueryRow(
 			ctx,
 			`
 				SELECT
-					cASE
+					CASE
 						WHEN canceled_at IS NULL THEN true
 						ELSE false
 					END AS is_not_canceled

@@ -98,7 +98,7 @@ func (f *FinancialAccountRepository) Create(ctx context.Context, model financial
 				type,
 				initial_balance,
 				opened_at,
-				created_at
+				created_at,
 				updated_at
 		`,
 		model.Name,
@@ -321,7 +321,7 @@ func (f *FinancialAccountRepository) GetCurrentBalance(ctx context.Context, fina
 						ELSE 0
 					END
 				), 0) AS balance
-			FROM
+			FROM		
 				financial_accounts fa
 			LEFT JOIN financial_transactions ft 
 				ON ft.financial_account_id = fa.id

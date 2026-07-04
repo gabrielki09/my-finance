@@ -211,6 +211,16 @@ func (f *FinancialObligationController) Pay(w http.ResponseWriter, r *http.Reque
 	}
 
 	if err := f.service.Pay(r.Context(), payload); err != nil {
+		var validationErr *apperrors.ValidationError
+
+		if errors.As(err, &validationErr) {
+			response.WriteJSON(w, http.StatusUnprocessableEntity, response.ErrorResponse(
+				"Erro de validação",
+				validationErr.Errors,
+			))
+			return
+		}
+
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao pagar a obrigação financeira",
 			map[string]any{"error": err.Error()},

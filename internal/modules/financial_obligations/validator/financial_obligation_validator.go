@@ -2,27 +2,34 @@ package financialobligationvalidator
 
 import (
 	"context"
+	"errors"
 	"finance/internal/apperrors"
 	mxl "finance/internal/constants/max_len"
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	"finance/internal/logger"
+	financialaccountrepository "finance/internal/modules/financial_accounts/repository"
 	financialmodel "finance/models/financial"
 	"fmt"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
 type FinancialObligationRepository interface {
 	ValidCategoryType(ctx context.Context, categoryId int, movementType financialmodel.FinancialObligationsTypes) (bool, error)
 	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
+	CalculateOutstandingBalance(ctx context.Context, financialObligationId int) (float64, error)
 }
 
 type FinancialObligationValidator struct {
-	repo FinancialObligationRepository
+	repo                       FinancialObligationRepository
+	financialAccountRepository *financialaccountrepository.FinancialAccountRepository
 }
 
-func NewFinancialObligationValidatorValidator(repo FinancialObligationRepository) *FinancialObligationValidator {
+func NewFinancialObligationValidatorValidator(repo FinancialObligationRepository, financialAccountRepository *financialaccountrepository.FinancialAccountRepository) *FinancialObligationValidator {
 	return &FinancialObligationValidator{
-		repo: repo,
+		repo:                       repo,
+		financialAccountRepository: financialAccountRepository,
 	}
 }
 
@@ -254,35 +261,65 @@ func (f FinancialObligationValidator) ValidateCancel(ctx context.Context, financ
 }
 
 func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
-	errors := apperrors.ValidationErrors{}
+	validationErrors := apperrors.ValidationErrors{}
 
 	financialObligation, err := f.repo.FindById(ctx, payload.FinancialObligationId)
 
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || errors.Is(err, apperrors.ErrNotFound) {
+			validationErrors["financial_obligation_id"] = append(validationErrors["financial_obligation_id"], "Obrigação financeira não localizada.")
+			return apperrors.NewValidationError(validationErrors)
+		}
+
 		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
 		return err
 	}
 
+	if _, err = f.financialAccountRepository.FindById(ctx, payload.FinancialAccountId); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || errors.Is(err, apperrors.ErrNotFound) {
+			validationErrors["financial_account_id"] = append(validationErrors["financial_account_id"], "Conta financeira não localizada.")
+			return apperrors.NewValidationError(validationErrors)
+		}
+
+		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		return err
+	}
+
+	if financialObligation.Type != financialmodel.PAYABLE {
+		validationErrors["type"] = append(
+			validationErrors["type"],
+			"Somente obrigações a pagar podem ser pagas.",
+		)
+	}
+
 	switch financialObligation.Status {
 	case financialmodel.SETTLED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira está paga.")
-		return apperrors.NewValidationError(errors)
-
-	case financialmodel.PARTIALLY_SETTLED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira está parcialmente paga.")
-		return apperrors.NewValidationError(errors)
+		validationErrors["status"] = append(validationErrors["status"], "Essa obrigação financeira já está paga.")
+		return apperrors.NewValidationError(validationErrors)
 
 	case financialmodel.CANCELED:
-		errors["status"] = append(errors["status"], "Essa obrigação financeira está cancelada.")
-		return apperrors.NewValidationError(errors)
+		validationErrors["status"] = append(validationErrors["status"], "Essa obrigação financeira está cancelada.")
+		return apperrors.NewValidationError(validationErrors)
 	}
 
-	if payload.AmountPaid > financialObligation.OriginalAmount {
-		errors["amount_paid"] = append(errors["amount_paid"], "O valor pago não pode ser maior que o valor da obrigação.")
+	if payload.AmountPaid <= 0 {
+		validationErrors["amount_paid"] = append(validationErrors["amount_paid"], "O valor pago precisa ser maior que zero.")
 	}
 
-	if len(errors) > 0 {
-		return apperrors.NewValidationError(errors)
+	outstandingBalance, err := f.repo.CalculateOutstandingBalance(ctx, payload.FinancialObligationId)
+
+	if err != nil {
+		return err
+	}
+
+	if payload.AmountPaid > outstandingBalance {
+		validationErrors["amount_paid"] = append(validationErrors["amount_paid"], "O valor pago não pode ser maior que o valor da obrigação.")
+	}
+
+	if len(validationErrors) > 0 {
+		logger.General.Error.Println(validationErrors)
+
+		return apperrors.NewValidationError(validationErrors)
 	}
 
 	return nil

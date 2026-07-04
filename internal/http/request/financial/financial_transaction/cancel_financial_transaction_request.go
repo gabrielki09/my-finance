@@ -17,23 +17,17 @@ func (c CancelFinancialTransactionRequest) ValidatePayload() apperrors.Validatio
 
 	errors := apperrors.ValidationErrors{}
 
-	if c.Id != nil && c.IdempotencyKey != nil {
-		errors["identifier"] = append(errors["identifier"], "Apenas um identificador da transação financeira deve ser informado.")
+	if c.Id == nil && c.IdempotencyKey == nil {
+		errors["identifier"] = append(errors["identifier"], "Ao menos um identificador da transação financeira deve ser informado.")
 
 		return errors
 	}
 
-	if c.Id == nil {
-		errors["id"] = append(errors["id"], "O identificador da transação financeira é obrigatório.")
-
-	} else if *c.Id < 1 {
+	if *c.Id < 1 {
 		errors["id"] = append(errors["id"], "O identificador da transação financeira é inválido.")
 	}
 
-	if c.IdempotencyKey == nil {
-		errors["idempotency_key"] = append(errors["idempotency_key"], "O identificador da transação financeira é obrigatório.")
-
-	} else if err := uuid.Validate(*c.IdempotencyKey); err != nil && c.Id == nil {
+	if err := uuid.Validate(*c.IdempotencyKey); err != nil && c.Id == nil {
 		errors["idempotency_key"] = append(errors["idempotency_key"], "O identificador da transação financeira é inválido.")
 	}
 

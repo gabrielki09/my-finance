@@ -268,19 +268,20 @@ func (c *CategoryRepository) VerifyParentId(ctx context.Context, parentId int) (
 
 	if err := c.db.QueryRow(
 		ctx,
-		`SELECT EXISTS 
-			( 
-			SELECT
-				id 
-			FROM
-				categories 
-			WHERE 
-				id = $1
-			ORDER BY 
-				id
-			DESC 
-				LIMIT 1
-			)
+		`
+			SELECT EXISTS 
+				( 
+					SELECT
+						id 
+					FROM
+						categories 
+					WHERE 
+						id = $1
+					ORDER BY 
+						id
+					DESC 
+						LIMIT 1
+				)
 		`,
 		parentId,
 	).Scan(&exists); err != nil {

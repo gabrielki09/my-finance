@@ -42,11 +42,11 @@ func splitSeeds(s string) []string {
 	return splited
 }
 
-func parseYAMLFile(seed string) (SeederFile, error) {
+func parseYAMLFile() (SeederFile, error) {
 	logger.General.Info.Println("Called parseYAMLFile")
 	var data SeederFile
 
-	file, err := seedFiles.ReadFile(seed)
+	file, err := seedFiles.ReadFile("seeds.yaml")
 
 	if err != nil {
 		return data, err
@@ -61,34 +61,36 @@ func parseYAMLFile(seed string) (SeederFile, error) {
 }
 
 func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error) {
-	offPointerSeed := strings.TrimSpace(*seed)
 
-	if offPointerSeed == "all" {
-		// block for all seeders
-
+	if seed == nil {
+		return nil
 	}
 
-	splitedSeeds := splitSeeds(offPointerSeed)
+	offPointerSeed := strings.TrimSpace(*seed)
 
-	var collectedSeeds []any
+	data, err := parseYAMLFile()
+	if err != nil {
+		return err
+	}
+
+	var splitedSeeds []string
+
+	if offPointerSeed == "all" {
+
+	} else {
+		splitedSeeds = splitSeeds(offPointerSeed)
+	}
 
 	for _, seed := range splitedSeeds {
 		switch seed {
 		case "category":
-			data, err := parseYAMLFile(seed)
-
-			if err != nil {
-				return err
-			}
-
 			if err := runItems[CategorySeed](ctx, data.Categories); err != nil {
 				return err
-			}
 
+			}
 		}
 	}
 
-	logger.General.Info.Println("Script:", collectedSeeds)
 	return err
 }
 
@@ -96,5 +98,8 @@ func runItems[T any](
 	ctx context.Context,
 	item []T,
 ) error {
+
+	logger.General.Info.Println(item)
+
 	return nil
 }
