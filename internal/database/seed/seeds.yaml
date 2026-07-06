@@ -8,6 +8,8 @@ accounts:
 categories:
   - name: Alimentação
     type: expense
+    color: "#96616B"
 
   - name: Salário
     type: income
+    color: "#F76F8E"

@@ -8,6 +8,7 @@ import (
 	financialmodel "finance/models/financial"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"gopkg.in/yaml.v3"
 )
@@ -21,8 +22,9 @@ type AccountSeed struct {
 }
 
 type CategorySeed struct {
-	Name string                      `yaml:"name"`
-	Type categorymodel.CategoryTpyes `yaml:"type"`
+	Name  string                      `yaml:"name"`
+	Type  categorymodel.CategoryTpyes `yaml:"type"`
+	Color string                      `yaml:"color"`
 }
 
 type SeederFile struct {
@@ -30,9 +32,7 @@ type SeederFile struct {
 	Categories []CategorySeed `yaml:"categories"`
 }
 
-func splitSeeds(s string) []string {
-	var splited []string
-
+func splitSeeds(s string) (splited []string) {
 	splite := strings.Split(s, "-")
 
 	for _, s := range splite {
@@ -61,7 +61,6 @@ func parseYAMLFile() (SeederFile, error) {
 }
 
 func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error) {
-
 	if seed == nil {
 		return nil
 	}
@@ -75,7 +74,24 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 
 	var splitedSeeds []string
 
+	tx, err := db.Begin(ctx)
+
+	if err != nil {
+		logger.General.Error.Println("Erro ao iniciar a transação:", err)
+		return err
+	}
+
 	if offPointerSeed == "all" {
+		if err := runAll(ctx, data, tx); err != nil {
+			return err
+		}
+
+		if err := tx.Commit(ctx); err != nil {
+			logger.General.Error.Println("Erro ao commitar a transação:", err)
+			return err
+		}
+
+		return err
 
 	} else {
 		splitedSeeds = splitSeeds(offPointerSeed)
@@ -83,10 +99,23 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 
 	for _, seed := range splitedSeeds {
 		switch seed {
-		case "category":
-			if err := runItems[CategorySeed](ctx, data.Categories); err != nil {
+		case "account":
+			if err := runAccount(ctx, data.Accounts, tx); err != nil {
 				return err
+			}
 
+			if err := tx.Commit(ctx); err != nil {
+				logger.General.Error.Println("Erro ao commitar a transação:", err)
+				return err
+			}
+		case "category":
+			if err := runCategory(ctx, data.Categories, tx); err != nil {
+				return err
+			}
+
+			if err := tx.Commit(ctx); err != nil {
+				logger.General.Error.Println("Erro ao commitar a transação:", err)
+				return err
 			}
 		}
 	}
@@ -94,12 +123,53 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 	return err
 }
 
-func runItems[T any](
-	ctx context.Context,
-	item []T,
-) error {
+func runAll(ctx context.Context, items SeederFile, tx pgx.Tx) (err error) {
+	if err = runCategory(ctx, items.Categories, tx); err != nil {
+		return err
+	}
 
-	logger.General.Info.Println(item)
+	if err = runAccount(ctx, items.Accounts, tx); err != nil {
+		return err
+	}
 
-	return nil
+	return err
+}
+
+func runAccount(ctx context.Context, items []AccountSeed, tx pgx.Tx) (err error) {
+	for _, item := range items {
+		if _, err := tx.Exec(
+			ctx,
+			`
+				INSERT INTO financial_accounts (name, type)
+				VALUES 	($1, $2)	
+			`,
+			item.Name,
+			item.Type,
+		); err != nil {
+			logger.General.Error.Println("Erro ao realizar o insert:", err)
+			return err
+		}
+	}
+
+	return err
+}
+
+func runCategory(ctx context.Context, items []CategorySeed, tx pgx.Tx) (err error) {
+	for _, item := range items {
+		if _, err := tx.Exec(
+			ctx,
+			`
+				INSERT INTO categories (name, type, color)
+				VALUES 	($1, $2, $3)	
+			`,
+			item.Name,
+			item.Type,
+			item.Color,
+		); err != nil {
+			logger.General.Error.Println("Erro ao realizar o insert:", err)
+			return err
+		}
+	}
+
+	return err
 }
