@@ -3,9 +3,10 @@ module finance
 go 1.26.1
 
 require (
+	github.com/GabrielK09/go-migrate-gk v0.1.1
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.9.2
+	github.com/jackc/pgx/v5 v5.10.0
 	github.com/joho/godotenv v1.5.1
 	gopkg.in/yaml.v3 v3.0.1
 )
