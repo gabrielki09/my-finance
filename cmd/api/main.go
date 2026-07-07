@@ -41,13 +41,18 @@ func main() {
 	extraArgs := flag.Args()
 
 	if *migrateFlag != "" {
-
 		if *migrateFlag == "create" {
 			if len(extraArgs) == 0 {
 				logger.General.Error.Fatal("Informe o nome da migration. Exemplo: -migrate=create create_users")
 			}
 
-			migrationName := extraArgs[0]
+			if err := migration.Run(ctx, dbConn, migration.Options{
+				Dir:       "database/migration",
+				Command:   migration.Command(*migrateFlag),
+				ExtraArgs: extraArgs,
+			}); err != nil {
+				logger.General.Error.Fatal("Erro ao rodar a migration:", err)
+			}
 		}
 
 		if err := migration.Run(ctx, dbConn, migration.Options{
@@ -57,7 +62,7 @@ func main() {
 			logger.General.Error.Fatal("Erro ao rodar a migration:", err)
 		}
 
-		logger.General.Info.Println("Migrate executada com sucesso!")
+		logger.General.Info.Println("Comando executado com sucesso!")
 		return
 
 	} else if *seederFlag != "" {
