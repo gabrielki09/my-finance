@@ -14,6 +14,7 @@ type CategoryRepository interface {
 	VerifyParentId(ctx context.Context, parentId int) (bool, error)
 	VerifyExistsCategoryName(ctx context.Context, categoryName string) (*categorymodel.CategoryModel, error)
 }
+
 type CategoryRequest struct {
 	Id       int
 	ParentId *int                        `json:"parent_id" validate:"sometimes,numeric"`

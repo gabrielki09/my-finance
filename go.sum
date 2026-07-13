@@ -8,6 +8,10 @@ github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ3
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/gabrielki09/go-scaffold-gk v0.1.8 h1:t0DbEuxqVPZmuu4v+ydlX9wDle9agyU5xy6taZQOMgI=
+github.com/gabrielki09/go-scaffold-gk v0.1.8/go.mod h1:hXLxM7ay1P868OKccNk4rWR3f2jJRYUfiwmjCpndUCE=
+github.com/gabrielki09/go-scaffold-gk v0.1.9 h1:zUNmUyhj++38Mo3PvMxO1dX5svemAOpHNzcEwZLasBg=
+github.com/gabrielki09/go-scaffold-gk v0.1.9/go.mod h1:hXLxM7ay1P868OKccNk4rWR3f2jJRYUfiwmjCpndUCE=
 github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
 github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=

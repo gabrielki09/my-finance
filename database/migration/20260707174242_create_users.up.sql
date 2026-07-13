@@ -1,5 +1,0 @@
-CREAT TABLE IF NOT EXISTS users (
-			created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-			updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-			deleted_at TIMESTAMPTZ NULL
-		);

@@ -90,14 +90,5 @@ func (p PayFinancialObligationRequest) ValidatePayObligationPayload(ctx context.
 		errors["amount_paid"] = append(errors["amount_paid"], "O valor pago não pode ser menor que zero.")
 	}
 
-	//payment_date
-	if p.PaymentDate == "" {
-		errors["payment_date"] = append(errors["payment_date"], "A data de pagamento precisa ser informada.")
-	}
-
-	if _, err := time.Parse("2006-01-02", p.PaymentDate); err != nil {
-		errors["payment_date"] = append(errors["payment_date"], "A data de pagamento deve estar no formato YYYY-MM-DD.")
-	}
-
 	return errors
 }

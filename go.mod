@@ -3,7 +3,6 @@ module finance
 go 1.26.1
 
 require (
-	github.com/GabrielK09/go-migrate-gk v0.1.4
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.10.0
@@ -12,6 +11,7 @@ require (
 )
 
 require (
+	github.com/gabrielki09/go-scaffold-gk v0.1.9 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect

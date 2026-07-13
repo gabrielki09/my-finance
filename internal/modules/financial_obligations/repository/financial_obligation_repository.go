@@ -15,6 +15,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+type queryRower interface {
+	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
+}
+
 type FinancialObligationRepository struct {
 	db *pgxpool.Pool
 }
@@ -176,7 +180,9 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 					original_amount,
 					due_date,
 					competence_date,
-					notes
+					notes,
+					created_at,
+    				updated_at
 			`,
 			financialObligationId,
 			payload.Description,
@@ -191,6 +197,8 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 			&financialObligation.DueDate,
 			&financialObligation.CompetenceDate,
 			&financialObligation.Notes,
+			&financialObligation.CreatedAt,
+			&financialObligation.UpdatedAt,
 		); err != nil {
 			return financialmodel.FinancialObligationModel{}, err
 		}
@@ -358,7 +366,7 @@ func (f *FinancialObligationRepository) Cancel(ctx context.Context, financialObl
 	return nil
 }
 
-func (f *FinancialObligationRepository) genericInsertObligationSettlements(
+func (f *FinancialObligationRepository) insertObligationSettlement(
 	ctx context.Context,
 	tx pgx.Tx,
 	payload financialobligationrequest.PayFinancialObligationRequest,
@@ -391,22 +399,17 @@ func (f *FinancialObligationRepository) genericInsertObligationSettlements(
 	return err
 }
 
-func (f *FinancialObligationRepository) genericInsertFinancialTransactions(
+func (f *FinancialObligationRepository) insertPaymentFinancialTransaction(
 	ctx context.Context,
 	tx pgx.Tx,
 	payload financialobligationrequest.PayFinancialObligationRequest,
 	financialObligation financialmodel.FinancialObligationModel,
+	outstandingBalance float64,
 ) (id int, err error) {
-	outstandingBalance, err := f.CalculateOutstandingBalance(ctx, financialObligation.Id)
-
-	if err != nil {
-		return id, err
-	}
-
 	description := utils.Ternary(
 		payload.AmountPaid == outstandingBalance,
-		fmt.Sprintf("Pagamento parcial da obrigação finaceira N° %d ", financialObligation.Id),
-		fmt.Sprintf("Pagamento da obrigação finaceira N° %d ", financialObligation.Id),
+		fmt.Sprintf("Pagamento da obrigação financeira N° %d ", financialObligation.Id),
+		fmt.Sprintf("Pagamento parcial da obrigação financeira N° %d ", financialObligation.Id),
 	)
 
 	logger.General.Info.Println("description:", description)
@@ -461,7 +464,7 @@ func (f *FinancialObligationRepository) genericInsertFinancialTransactions(
 		return id, err
 	}
 
-	return id, err
+	return id, nil
 }
 
 func (f *FinancialObligationRepository) selectFinancialObligationForUpdate(
@@ -507,19 +510,13 @@ func (f *FinancialObligationRepository) selectFinancialObligationForUpdate(
 	return financialObligation, err
 }
 
-func (f *FinancialObligationRepository) genericUpdateFinancialObligation(
+func (f *FinancialObligationRepository) updateFinancialObligation(
 	ctx context.Context,
 	tx pgx.Tx,
-	amountPaid float64,
 	financialObligationId int,
-) (err error) {
-	outstandingBalance, err := f.CalculateOutstandingBalance(ctx, financialObligationId)
-
-	if err != nil {
-		return err
-	}
-
-	if _, err := tx.Exec(
+	status financialmodel.FinancialObligationsStatus,
+) error {
+	tag, err := tx.Exec(
 		ctx,
 		`
 			UPDATE 
@@ -531,24 +528,35 @@ func (f *FinancialObligationRepository) genericUpdateFinancialObligation(
 				id = $1
 		`,
 		financialObligationId,
-		utils.Ternary(
-			amountPaid == outstandingBalance,
-			financialmodel.SETTLED,
-			financialmodel.PARTIALLY_SETTLED,
-		),
-	); err != nil {
-		logger.General.Error.Println("Erro ao definir o status como pago:", err)
+		status,
+	)
+
+	if err != nil {
 		return err
 	}
 
-	return err
+	if tag.RowsAffected() == 0 {
+		return apperrors.ErrNotFound
+	}
+
+	return nil
 }
 
 func (f *FinancialObligationRepository) CalculateOutstandingBalance(
 	ctx context.Context,
 	financialObligationId int,
 ) (amount float64, err error) {
-	if err := f.db.QueryRow(
+	return calculateOutstandingBalance(ctx, f.db, financialObligationId)
+}
+
+func calculateOutstandingBalance(
+	ctx context.Context,
+	q queryRower,
+	financialObligationId int,
+) (float64, error) {
+	var amount float64
+
+	err := q.QueryRow(
 		ctx,
 		`
 			SELECT 
@@ -568,51 +576,65 @@ func (f *FinancialObligationRepository) CalculateOutstandingBalance(
 				fo.original_amount
 		`,
 		financialObligationId,
-	).Scan(&amount); err != nil {
-		logger.General.Error.Println("Erro ao conferir o total pendente: ", err)
+	).Scan(&amount)
 
-		if errors.Is(err, pgx.ErrNoRows) {
-			return amount, err
-		}
-
-		return amount, err
+	if err != nil {
+		return 0, err
 	}
 
-	return amount, err
+	return amount, nil
 }
 
 func (f *FinancialObligationRepository) Pay(
 	ctx context.Context,
 	payload financialobligationrequest.PayFinancialObligationRequest,
 ) error {
-	if err := transactionhelper.WithTransaction(
+	return transactionhelper.WithTransaction(
 		ctx,
 		f.db,
 		func(tx pgx.Tx) error {
 			financialObligation, err := f.selectFinancialObligationForUpdate(ctx, tx, payload.FinancialObligationId)
-
 			if err != nil {
 				logger.General.Error.Println("Erro ao localizar a obrigação financeira que será paga:", err)
 				return err
 			}
 
-			logger.General.Info.Println("Obrigação financeira que será paga:", financialObligation)
+			outstandingBalance, err := calculateOutstandingBalance(ctx, tx, financialObligation.Id)
+			if err != nil {
+				logger.General.Error.Println("Erro ao calcular o saldo pendente da obrigação financeira:", err)
+				return err
+			}
 
-			logger.General.Info.Println("O valor pago é igual o da obrigação financeira:", payload.AmountPaid)
+			if payload.AmountPaid <= 0 {
+				return apperrors.NewValidationError(apperrors.ValidationErrors{
+					"amount_paid": {"O valor pago precisa ser maior que zero."},
+				})
+			}
 
-			financialTransactionId, err := f.genericInsertFinancialTransactions(
+			if payload.AmountPaid > outstandingBalance {
+				return apperrors.NewValidationError(apperrors.ValidationErrors{
+					"amount_paid": {"O valor pago não pode ser maior que o saldo pendente da obrigação."},
+				})
+			}
+
+			newStatus := financialmodel.PARTIALLY_SETTLED
+			if payload.AmountPaid == outstandingBalance {
+				newStatus = financialmodel.SETTLED
+			}
+
+			financialTransactionId, err := f.insertPaymentFinancialTransaction(
 				ctx,
 				tx,
 				payload,
 				financialObligation,
+				outstandingBalance,
 			)
-
 			if err != nil {
 				logger.General.Error.Println("Erro ao cadastrar a transação financeira: ", err)
 				return err
 			}
 
-			if err := f.genericInsertObligationSettlements(
+			if err := f.insertObligationSettlement(
 				ctx,
 				tx,
 				payload,
@@ -622,24 +644,11 @@ func (f *FinancialObligationRepository) Pay(
 				return err
 			}
 
-			if err := f.genericUpdateFinancialObligation(
+			return f.updateFinancialObligation(
 				ctx,
 				tx,
-				payload.AmountPaid,
-				payload.FinancialObligationId,
-			); err != nil {
-				logger.General.Error.Println("Erro ao alterar o status da obrigação financeira: ", err)
-				return err
-			}
-
-			return nil
-		}); err != nil {
-
-		logger.General.Error.Println("Erro durante a transação de pagamento:", err)
-		return err
-
-	}
-
-	return nil
-
+				financialObligation.Id,
+				newStatus,
+			)
+		})
 }

@@ -313,7 +313,13 @@ func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.C
 	}
 
 	if payload.AmountPaid > outstandingBalance {
-		validationErrors["amount_paid"] = append(validationErrors["amount_paid"], "O valor pago não pode ser maior que o valor da obrigação.")
+		validationErrors["amount_paid"] = append(validationErrors["amount_paid"], "O valor pago não pode ser maior que o saldo pendente da obrigação.")
+	}
+
+	if payload.PaymentDate == "" {
+		validationErrors["payment_date"] = append(validationErrors["payment_date"], "A data de pagamento é obrigatória.")
+	} else if _, err := time.Parse("2006-01-02", payload.PaymentDate); err != nil {
+		validationErrors["payment_date"] = append(validationErrors["payment_date"], "A data de pagamento deve estar no formato YYYY-MM-DD.")
 	}
 
 	if len(validationErrors) > 0 {

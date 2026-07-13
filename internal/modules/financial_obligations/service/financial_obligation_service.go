@@ -110,7 +110,6 @@ func (f *FinancialObligationService) Cancel(ctx context.Context, financialObliga
 }
 
 func (f *FinancialObligationService) Pay(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
-
 	if err := f.validator.ValidatePayObligationPayload(ctx, payload); err != nil {
 		logger.General.Error.Println("Erro ao validar os dados para o pagamento da obrigação financeira:", err)
 		return err

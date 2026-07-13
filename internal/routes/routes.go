@@ -2,12 +2,12 @@ package routes
 
 import (
 	"finance/internal/helpers/response"
+	"finance/internal/logger"
 	categoryesroutes "finance/internal/modules/categories/routes"
 	financialtransactionroutes "finance/internal/modules/financial/routes"
 	financialaccountroutes "finance/internal/modules/financial_accounts/routes"
 	financialobligationsroutes "finance/internal/modules/financial_obligations/routes"
 	"finance/internal/routes/cors"
-	"log"
 	"net/http"
 	"os"
 
@@ -40,8 +40,9 @@ func StartServer(db *pgxpool.Pool) {
 
 	handlerWithCORS := cors.WithCORS(rootMux)
 
-	log.Printf("Servidor rodando em http://localhost:%s/api", port)
+	logger.General.Info.Printf("Servidor rodando em http://localhost:%s/api", port)
+
 	if err := http.ListenAndServe(":"+port, handlerWithCORS); err != nil {
-		log.Fatal("Erro ao iniciar o servidor:", err)
+		logger.General.Info.Fatal("Erro ao iniciar o servidor:", err)
 	}
 }
