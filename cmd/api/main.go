@@ -53,44 +53,7 @@ func main() {
 
 	flag.Parse()
 
-	flags := make(map[string]bool)
-
 	if *modelFlag != "" {
-		if *uuidUse && *idUse {
-			log.Fatal("somente um tipo de ID pode ser utilizado.")
-		}
-
-		if !*uuidUse && !*idUse {
-			log.Fatal("informe o tipo de ID: -uuid ou -id")
-		}
-	}
-
-	flags["model"] = true
-	flags["uuid_use"] = *uuidUse
-	flags["id_use"] = *idUse
-	flags["separate_by_folder"] = *separateByFolder
-	flags["requests"] = *requests
-	flags["resource"] = *resource
-	flags["seed"] = *seed
-	flags["migration"] = *migrationFlag
-	flags["controller"] = *controller
-
-	if *all {
-		for key := range flags {
-			if key == "uuid_use" || key == "id_use" || key == "separate_by_folder" {
-				continue
-			}
-
-			flags[key] = true
-		}
-	}
-
-	if *modelFlag != "" {
-		options := scaffold.Options{
-			Name:             *modelFlag,
-			SeparateByFolder: flags["separate_by_folder"],
-			Command:          flags,
-		}
 
 		if err := scaffold.Run(options); err != nil {
 			log.Fatal(err)
