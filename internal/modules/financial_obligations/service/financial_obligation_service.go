@@ -16,7 +16,7 @@ type FinancialObligationRepository interface {
 	Create(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) (financialmodel.FinancialObligationModel, error)
 	Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialmodel.FinancialObligationModel, error)
 	Cancel(ctx context.Context, financialObligationId int) error
-	Pay(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error
+	PayFinancialObligation(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error
 	CalculateOutstandingBalance(ctx context.Context, financialObligationId int) (float64, error)
 	FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error)
 }
@@ -109,13 +109,13 @@ func (f *FinancialObligationService) Cancel(ctx context.Context, financialObliga
 	return nil
 }
 
-func (f *FinancialObligationService) Pay(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
+func (f *FinancialObligationService) PayFinancialObligation(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
 	if err := f.validator.ValidatePayObligationPayload(ctx, payload); err != nil {
 		logger.General.Error.Println("Erro ao validar os dados para o pagamento da obrigação financeira:", err)
 		return err
 	}
 
-	if err := f.repository.Pay(ctx, payload); err != nil {
+	if err := f.repository.PayFinancialObligation(ctx, payload); err != nil {
 		logger.General.Error.Println("Erro ao pagar a obrigação financeira:", err)
 		return err
 	}

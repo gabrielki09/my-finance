@@ -556,6 +556,29 @@ func calculateOutstandingBalance(
 ) (float64, error) {
 	var amount float64
 
+	/*
+		SELECT
+			fo.description as "Obrigação financeira",
+			fo.status as "Status",
+			fo.original_amount as "Valor original",
+			fo.original_amount
+			-
+			COALESCE(SUM(os.amount), 0) AS "Saldo pendente" -- outstanding_balance
+		FROM
+			financial_obligations fo
+		LEFT JOIN obligation_settlements os
+			ON os.obligation_id = fo.id
+			AND os.canceled_at IS NULL
+		WHERE
+			fo.id = 1
+			AND fo.deleted_at IS null
+		GROUP BY
+			fo.id,
+			fo.status,
+			fo.description,
+			fo.original_amount
+	*/
+
 	err := q.QueryRow(
 		ctx,
 		`
@@ -585,7 +608,7 @@ func calculateOutstandingBalance(
 	return amount, nil
 }
 
-func (f *FinancialObligationRepository) Pay(
+func (f *FinancialObligationRepository) PayFinancialObligation(
 	ctx context.Context,
 	payload financialobligationrequest.PayFinancialObligationRequest,
 ) error {

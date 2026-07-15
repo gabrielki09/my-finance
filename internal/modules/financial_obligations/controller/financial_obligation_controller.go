@@ -20,7 +20,7 @@ type FinancialObligationService interface {
 	GetAll(context.Context, string, []any) ([]financialresponse.FinancialObligationResponse, error)
 	Create(context.Context, financialobligationrequest.FinancialObligationRequest) (financialresponse.FinancialObligationResponse, error)
 	Update(context.Context, financialobligationrequest.FinancialObligationRequest, int) (financialresponse.FinancialObligationResponse, error)
-	Pay(context.Context, financialobligationrequest.PayFinancialObligationRequest) error
+	PayFinancialObligation(context.Context, financialobligationrequest.PayFinancialObligationRequest) error
 	Cancel(context.Context, int) error
 }
 
@@ -194,7 +194,7 @@ func (f *FinancialObligationController) Cancel(w http.ResponseWriter, r *http.Re
 	))
 }
 
-func (f *FinancialObligationController) Pay(w http.ResponseWriter, r *http.Request) {
+func (f *FinancialObligationController) PayFinancialObligation(w http.ResponseWriter, r *http.Request) {
 	var payload financialobligationrequest.PayFinancialObligationRequest
 
 	decoder := json.NewDecoder(r.Body)
@@ -210,7 +210,7 @@ func (f *FinancialObligationController) Pay(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if err := f.service.Pay(r.Context(), payload); err != nil {
+	if err := f.service.PayFinancialObligation(r.Context(), payload); err != nil {
 		var validationErr *apperrors.ValidationError
 
 		if errors.As(err, &validationErr) {

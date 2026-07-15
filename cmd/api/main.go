@@ -6,7 +6,6 @@ import (
 	"finance/internal/logger"
 	"finance/internal/routes"
 	"flag"
-	"log"
 	"os"
 
 	migration "github.com/gabrielki09/go-scaffold-gk/pkg/migration"
@@ -46,7 +45,7 @@ func main() {
 		requests         = flag.Bool("R", false, "Comando para criação da request")
 		resource         = flag.Bool("r", false, "Comando para criação de resources")
 		seed             = flag.Bool("s", false, "Comando para criação do seeder")
-		migrationFlag    = flag.Bool("m", false, "Comando para criação da migration")
+		migrationFlag    = flag.Bool("M", false, "Comando para criação da migration")
 		controller       = flag.Bool("c", false, "Comando para criação do controller")
 		all              = flag.Bool("a", false, "Comando para separação de pastas por model")
 	)
@@ -54,12 +53,29 @@ func main() {
 	flag.Parse()
 
 	if *modelFlag != "" {
+		commands := scaffold.NewCommandMap(scaffold.CommandOptions{
+			UUIDUse:          *uuidUse,
+			IDUse:            *idUse,
+			SeparateByFolder: *separateByFolder,
+			Requests:         *requests,
+			Resource:         *resource,
+			Seed:             *seed,
+			Migration:        *migrationFlag,
+			Controller:       *controller,
+			All:              *all,
+		})
 
-		if err := scaffold.Run(options); err != nil {
-			log.Fatal(err)
+		options := scaffold.Options{
+			Name:             *modelFlag,
+			SeparateByFolder: *separateByFolder,
+			Command:          commands,
 		}
 
-		logger.General.Info.Println("Comando executado com sucesso!")
+		if err := scaffold.Run(options); err != nil {
+			logger.General.Info.Fatal(err)
+		}
+
+		logger.General.Info.Println("Scaffold executado com sucesso!")
 		return
 	}
 
