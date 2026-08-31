@@ -1,0 +1,33 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\AuthRequest;
+use App\Service\Auth\AuthService;
+use Illuminate\Support\Facades\Auth;
+
+class AuthController extends Controller
+{
+    public function __construct(
+        protected AuthService $authService
+    ){}
+
+    public function login(AuthRequest $req)
+    {
+        $data = $req->validated();
+        return apiSuccess(
+            'Login bem sucedido!',
+            $this->authService->login($data['email'], $data['password'])
+        );
+    }
+
+    public function logout()
+    {
+        auth()->user()->tokens()->delete();
+
+        return apiSuccess(
+            'Logout bem sucedido!'
+        );
+    }
+}

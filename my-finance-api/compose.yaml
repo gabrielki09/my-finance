@@ -1,0 +1,38 @@
+services:
+    my-finance-api:
+        build:
+            context: .
+            dockerfile: ./dockerfile.dev
+        container_name: my_finance_api
+        working_dir: /var/www
+        volumes:
+            - ./:/var/www
+        ports:
+            - "8080:8080"
+        env_file:
+            - .env
+        depends_on:
+            my-finance-db:
+                condition: service_healthy
+        command: php artisan serve --host=0.0.0.0 --port=8080
+
+    my-finance-db:
+        image: postgres:18-alpine
+        container_name: my_finance_postgres
+        restart: always
+        environment:
+            POSTGRES_DB: my_finance_db
+            POSTGRES_USER: my_finance
+            POSTGRES_PASSWORD: masterkey
+        ports:
+            - "5440:5432"
+        volumes:
+            - my_finance_postgres_data:/var/lib/postgresql
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U my_finance -d my_finance_db"]
+            interval: 5s
+            timeout: 5s
+            retries: 10
+
+volumes:
+    my_finance_postgres_data:
