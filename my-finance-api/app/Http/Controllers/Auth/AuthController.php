@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\AuthRequest;
 use App\Service\Auth\AuthService;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -16,6 +16,7 @@ class AuthController extends Controller
     public function login(AuthRequest $req)
     {
         $data = $req->validated();
+
         return apiSuccess(
             'Login bem sucedido!',
             $this->authService->login($data['email'], $data['password'])

@@ -2,10 +2,9 @@
 
 namespace App\Service\Auth;
 
+use App\Exceptions\BusinessException;
 use App\Models\User;
 use App\Repositories\Interface\User\UserInterface;
-use Exception;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\Hash;
 
 class AuthService
@@ -28,7 +27,7 @@ class AuthService
     {
         $user = $this->eloquentUserRepository->findByEmail($email);
 
-        if ( ! $user ) throw new ModelNotFoundException('Credencias incorretas.');
+        if ( ! $user ) throw new BusinessException('Credencias incorretas.');
 
         return $user;
     }
@@ -36,7 +35,8 @@ class AuthService
     public function login(string $email, string $password): array
     {
         $user = $this->findByEmail($email);
-        if ( !$this->checkPassword($password, $user) ) throw new Exception('Credencias incorretas.');
+
+        if ( !$this->checkPassword($password, $user) ) throw new BusinessException('Credencias incorretas.');
 
         return [
             'token' => $this->generateToken($user)
