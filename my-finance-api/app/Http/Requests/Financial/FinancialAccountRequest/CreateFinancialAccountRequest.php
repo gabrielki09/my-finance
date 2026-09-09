@@ -2,13 +2,12 @@
 
 namespace App\Http\Requests\Financial\FinancialCategoryRequest;
 
-use App\Enum\Financial\FinancialCategoryTypes;
 use App\Models\Financial\FinancialCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
-class CreateFinancialCategorRequest extends FormRequest
+class CreateFinancialAccountRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,10 +26,7 @@ class CreateFinancialCategorRequest extends FormRequest
     {
         return [
             'user_id' => ['required', 'exists:users,id'],
-            'name' => ['required', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')],
-            'type' => ['required', Rule::enum(FinancialCategoryTypes::class)],
-            'color' => ['sometimes', 'max:120'],
-            'icon' => ['sometimes', 'max:120'],
+            'name' => ['required', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')]
         ];
     }
 
@@ -43,10 +39,6 @@ class CreateFinancialCategorRequest extends FormRequest
             'name.min' => 'O nome da categoria financeira deve conter no minímo :min caracteres.',
             'name.max' => 'O nome da categoria financeira deve conter no máximo :max caracteres.',
             'name.unique' => 'Essa categoria financeira já está cadastrada.',
-            'type.required' => 'O tipo da categoria financeira é obrigatório.',
-            'type.enum' => 'O tipo da categoria financeira é precisa ser uma Entrada, Saída ou Ambos.',
-            'color.max' => 'A cor para exibição da categoria financeira deve conter no máximo :max caracteres.',
-            'icon.max' => 'O ícone para exibição da categoria financeira deve conter no máximo :max caracteres.',
         ];
     }
 }

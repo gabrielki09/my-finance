@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Financial;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Financial\FinancialCategoryRequest\CreateFinancialCategorRequest;
+use App\Http\Requests\Financial\FinancialCategoryRequest\CreateFinancialCategoryRequest;
 use App\Service\Financial\FinancialCategoryService;
 use Illuminate\Http\Request;
 
@@ -12,6 +12,7 @@ class FinancialCategoryController extends Controller
     public function __construct(
         protected FinancialCategoryService $financialCategoryService
     ){}
+
     /**
      * Display a listing of the resource.
      */
@@ -26,7 +27,7 @@ class FinancialCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateFinancialCategorRequest $request)
+    public function store(CreateFinancialCategoryRequest $request)
     {
         return apiSuccess(
             'Categoria financeira cadastrada com sucesso!',

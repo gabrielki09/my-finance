@@ -23,9 +23,9 @@ class AuthController extends Controller
         );
     }
 
-    public function logout()
+    public function logout(Request $req)
     {
-        auth()->user()->tokens()->delete();
+        $req->user()->currentAccessToken()->delete();
 
         return apiSuccess(
             'Logout bem sucedido!'
