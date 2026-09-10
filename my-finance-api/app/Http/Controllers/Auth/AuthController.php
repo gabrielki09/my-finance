@@ -31,4 +31,14 @@ class AuthController extends Controller
             'Logout bem sucedido!'
         );
     }
+
+    public function me(Request $req)
+    {
+        return apiSuccess(
+            'Meus dados',
+            [
+                'user' => $req->user()
+            ]
+        );
+    }
 }

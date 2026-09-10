@@ -50,4 +50,8 @@ class FinancialAccountService
         $this->eloquentFinancialAccountRepository->delete($this->findByUuid($uuid));
     }
 
+    public function active(string $uuid)
+    {
+        $this->eloquentFinancialAccountRepository->active($this->findByUuid($uuid));
+    }
 }

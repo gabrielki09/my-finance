@@ -49,4 +49,9 @@ class FinancialCategoryService
     {
         $this->eloquentFinancialCategoryRepository->delete($this->findByUuid($uuid));
     }
+
+    public function active(string $uuid)
+    {
+        $this->eloquentFinancialCategoryRepository->active($this->findByUuid($uuid));
+    }
 }

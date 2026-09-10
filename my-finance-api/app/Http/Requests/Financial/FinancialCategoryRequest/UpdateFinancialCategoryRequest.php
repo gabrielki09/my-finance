@@ -25,9 +25,11 @@ class UpdateFinancialCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
+        $category = FinancialCategory::query()->where('uuid', $this->route('uuid'))->firstOrFail();
+
         return [
             'user_id' => ['required', 'exists:users,id'],
-            'name' => ['sometimes', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')->ignore($this->route('uuid'))],
+            'name' => ['sometimes', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')->ignore($category)],
             'type' => ['sometimes', Rule::enum(FinancialCategoryTypes::class)],
             'color' => ['sometimes', 'max:120'],
             'icon' => ['sometimes', 'max:120'],

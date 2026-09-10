@@ -63,4 +63,9 @@ class FinancialAccountController extends Controller
     {
         $this->financialAccountService->delete($uuid);
     }
+
+    public function active(string $uuid)
+    {
+        $this->financialAccountService->active($uuid);
+    }
 }

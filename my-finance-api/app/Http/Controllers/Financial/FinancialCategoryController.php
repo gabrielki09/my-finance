@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Financial;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Financial\FinancialCategoryRequest\CreateFinancialCategoryRequest;
+use App\Http\Requests\Financial\FinancialCategoryRequest\UpdateFinancialCategoryRequest;
 use App\Service\Financial\FinancialCategoryService;
 use Illuminate\Http\Request;
 
@@ -49,7 +50,7 @@ class FinancialCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $uuid)
+    public function update(UpdateFinancialCategoryRequest $request, string $uuid)
     {
         return apiSuccess(
             'Categoria financeira alterada com sucesso!',
@@ -63,5 +64,10 @@ class FinancialCategoryController extends Controller
     public function destroy(string $uuid)
     {
         $this->financialCategoryService->delete($uuid);
+    }
+
+    public function active(string $uuid)
+    {
+        $this->financialCategoryService->active($uuid);
     }
 }

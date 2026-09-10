@@ -14,9 +14,10 @@ return new class extends Migration
     {
         Schema::create('financial_categories', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->index('idx_financial_category_uuid');
+            $table->uuid('uuid')->unique('un_financial_category_uuid')->index('idx_financial_category_uuid');
             $table->foreignId('user_id')->constrained('users');
-            $table->string('name', 255)->unique('un_financial_categories_name');
+            $table->string('name', 255);
+            $table->unique(['name', 'user_id'], 'un_financial_categories_name');
             $table->enum('type', [array_column(FinancialCategoryTypes::cases(), 'value')]);
             $table->string('color', 120)->default('#ffff');
             $table->string('icon', 120)->nullable();

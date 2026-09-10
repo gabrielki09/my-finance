@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('financial_accounts', function (Blueprint $table) {
             $table->id();
-            $table->uuid('uuid')->index('idx_financial_account_uuid');
+            $table->uuid('uuid')->unique('un_financial_account_uuid')->index('idx_financial_account_uuid');
             $table->foreignId('user_id')->constrained('users');
             $table->string('name', 255);
             $table->softDeletes();

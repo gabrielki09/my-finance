@@ -21,6 +21,11 @@ class FinancialCategory extends Model
 
     protected $primaryKey = 'id';
 
+    public function uniqueIds()
+    {
+        return ['uuid'];
+    }
+
     protected function casts()
     {
         return [
