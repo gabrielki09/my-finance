@@ -2,6 +2,7 @@
 
 namespace App\Models\Financial;
 
+use App\Enum\Financial\FinancialAccountTypes;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -10,7 +11,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'uuid',
     'user_id',
-    'name'
+    'name',
+    'type',
+    'initial_balance',
+    'current_balance',
 ])]
 class FinancialAccount extends Model
 {
@@ -21,7 +25,8 @@ class FinancialAccount extends Model
     protected function casts()
     {
         return [
-            'deleted_at' => 'date'
+            'type' => FinancialAccountTypes::class,
+            'deleted_at' => 'date',
         ];
     }
 }
