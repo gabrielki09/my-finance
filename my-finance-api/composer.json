@@ -27,7 +27,8 @@
             "Database\\Seeders\\": "database/seeders/"
         },
         "files": [
-            "app\\Helpers\\Http\\apiResponse.php"
+            "app\\Helpers\\Http\\ApiResponse.php",
+            "app\\Helpers\\UserIdHelper.php"
         ]
     },
     "autoload-dev": {

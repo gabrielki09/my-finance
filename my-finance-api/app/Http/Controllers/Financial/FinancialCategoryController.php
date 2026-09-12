@@ -32,18 +32,19 @@ class FinancialCategoryController extends Controller
     {
         return apiSuccess(
             'Categoria financeira cadastrada com sucesso!',
-            $this->financialCategoryService->create($request->validated())
+            $this->financialCategoryService->create(buildArrayDataWithUserId($request)),
+            201
         );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $uuid)
+    public function show(Request $req, string $uuid)
     {
         return apiSuccess(
             'Dados da categoria financeira.',
-            $this->financialCategoryService->findByUuid($uuid)
+            $this->financialCategoryService->findByUuid($uuid, getUserIdByRequest($req))
         );
     }
 
@@ -54,20 +55,20 @@ class FinancialCategoryController extends Controller
     {
         return apiSuccess(
             'Categoria financeira alterada com sucesso!',
-            $this->financialCategoryService->update($request->validated(), $uuid)
+            $this->financialCategoryService->update(buildArrayDataWithUserId($request), $uuid)
         );
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $uuid)
+    public function destroy(Request $req, string $uuid)
     {
-        $this->financialCategoryService->delete($uuid);
+        $this->financialCategoryService->delete($uuid, getUserIdByRequest($req));
     }
 
-    public function active(string $uuid)
+    public function active(Request $req, string $uuid)
     {
-        $this->financialCategoryService->active($uuid);
+        $this->financialCategoryService->active($uuid, getUserIdByRequest($req));
     }
 }

@@ -28,7 +28,6 @@ class UpdateFinancialCategoryRequest extends FormRequest
         $category = FinancialCategory::query()->where('uuid', $this->route('uuid'))->firstOrFail();
 
         return [
-            'user_id' => ['required', 'exists:users,id'],
             'name' => ['sometimes', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')->ignore($category)],
             'type' => ['sometimes', Rule::enum(FinancialCategoryTypes::class)],
             'color' => ['sometimes', 'max:120'],
@@ -39,12 +38,10 @@ class UpdateFinancialCategoryRequest extends FormRequest
     public function messages()
     {
         return [
-            'user_id.required' => 'O identificador do usuário responsável é obrigatório.',
-            'user_id.exists' => 'O usuário responsável deve ser um usuário válido.',
             'name.min' => 'O nome da categoria financeira deve conter no minímo :min caracteres.',
             'name.max' => 'O nome da categoria financeira deve conter no máximo :max caracteres.',
             'name.unique' => 'Essa categoria financeira já está cadastrada.',
-            'type.enum' => 'O tipo da categoria financeira é precisa ser uma Entrada, Saída ou Ambos.',
+            'type.enum' => 'O tipo da categoria financeira precisa ser uma Entrada, Saída ou Ambos.',
             'color.max' => 'A cor para exibição da categoria financeira deve conter no máximo :max caracteres.',
             'icon.max' => 'O ícone para exibição da categoria financeira deve conter no máximo :max caracteres.',
         ];

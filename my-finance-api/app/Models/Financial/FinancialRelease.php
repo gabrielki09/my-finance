@@ -2,7 +2,8 @@
 
 namespace App\Models\Financial;
 
-use App\Enum\Financial\FinancialAccountTypes;
+use App\Enum\Financial\FinancialReleasesStatus;
+use App\Enum\Financial\FinancialReleasesType;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
@@ -11,12 +12,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 #[Fillable([
     'uuid',
     'user_id',
-    'name',
+    'account_id',
+    'category_id',
     'type',
-    'color',
-    'icon'
+    'description',
+    'amount',
+    'transaction_date',
+    'due_date',
+    'paid_date',
+    'status',
+    'notes',
 ])]
-class FinancialCategory extends Model
+class FinancialRelease extends Model
 {
     use HasUuids, SoftDeletes;
 
@@ -30,7 +37,9 @@ class FinancialCategory extends Model
     protected function casts()
     {
         return [
-            'type' => FinancialAccountTypes::class,
+            'status' => FinancialReleasesStatus::class,
+            'type' => FinancialReleasesType::class,
+            'amount' => 'decimal:2',
             'deleted_at' => 'date'
         ];
     }

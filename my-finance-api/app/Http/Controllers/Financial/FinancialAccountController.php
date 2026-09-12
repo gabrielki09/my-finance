@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Financial\FinancialCategoryRequest\CreateFinancialAccountRequest;
 use App\Http\Requests\Financial\FinancialCategoryRequest\UpdateFinancialAccountRequest;
 use App\Service\Financial\FinancialAccountService;
+use Illuminate\Http\Request;
 
 class FinancialAccountController extends Controller
 {
@@ -30,18 +31,19 @@ class FinancialAccountController extends Controller
     {
         return apiSuccess(
             'Conta financeira cadastrada com sucesso!',
-            $this->financialAccountService->create($request->validated())
+            $this->financialAccountService->create(buildArrayDataWithUserId($request)),
+            201
         );
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $uuid)
+    public function show(Request $req, string $uuid)
     {
         return apiSuccess(
             'Dados da conta financeira',
-            $this->financialAccountService->findByUuid($uuid)
+            $this->financialAccountService->findByUuid($uuid, $req->user()->id)
         );
     }
 
@@ -52,20 +54,20 @@ class FinancialAccountController extends Controller
     {
         return apiSuccess(
             'Conta financeira alterada com sucesso!',
-            $this->financialAccountService->update($request->validated(), $uuid)
+            $this->financialAccountService->update(buildArrayDataWithUserId($request), $uuid)
         );
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $uuid)
+    public function destroy(Request $req, string $uuid)
     {
-        $this->financialAccountService->delete($uuid);
+        $this->financialAccountService->delete($uuid, $req->user()->id);
     }
 
-    public function active(string $uuid)
+    public function active(Request $req, string $uuid)
     {
-        $this->financialAccountService->active($uuid);
+        $this->financialAccountService->active($uuid, $req->user()->id);
     }
 }

@@ -17,8 +17,8 @@ interface BaseInterface
         array $with = []
     ): LengthAwarePaginator;
 
-    public function find(string|int $id, array $with = []): ?Model;
-    public function findByUuid(string $uuid, array $with = []): ?Model;
+    public function find(string|int $id, int $userId, array $with = []): ?Model;
+    public function findByUuid(string $uuid, int $userId, array $with = []): ?Model;
     public function create(array $data): Model;
     public function update(Model $model, array $data): Model;
     public function delete(Model $model): void;

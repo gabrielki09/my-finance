@@ -39,17 +39,20 @@ abstract class EloquentBaseRepository implements BaseInterface
                 ->paginate($perPage, $columns);
     }
 
-    public function find(string|int $id, array $with = []): ?Model
+    public function find(string|int $id, int $userId, array $with = []): ?Model
     {
         return $this->query()
                     ->with($with)
-                    ->find($id);
+                    ->where('user_id', $userId)
+                    ->where('uuid', $id)
+                    ->first();
     }
 
-    public function findByUuid(string $uuid, array $with = []): ?Model
+    public function findByUuid(string $uuid, int $userId, array $with = []): ?Model
     {
         return $this->query()
                     ->with($with)
+                    ->where('user_id', $userId)
                     ->where('uuid', $uuid)
                     ->first();
     }

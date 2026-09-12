@@ -17,18 +17,18 @@ class FinancialCategoryService
         return $this->eloquentFinancialCategoryRepository->all();
     }
 
-    public function find(string|int $id): FinancialCategory
+    public function find(string|int $id, int $userId): FinancialCategory
     {
-        $financialCategory = $this->eloquentFinancialCategoryRepository->find($id);
+        $financialCategory = $this->eloquentFinancialCategoryRepository->find($id, $userId);
 
         if ( ! $financialCategory ) throw new ModelNotFoundException('Categoria financeira não localizada.');
 
         return $financialCategory;
     }
 
-    public function findByUuid(string $uuid): FinancialCategory
+    public function findByUuid(string $uuid, int $userId): FinancialCategory
     {
-        $financialCategory = $this->eloquentFinancialCategoryRepository->findByUuid($uuid);
+        $financialCategory = $this->eloquentFinancialCategoryRepository->findByUuid($uuid, $userId);
 
         if ( ! $financialCategory ) throw new ModelNotFoundException('Categoria financeira não localizada.');
 
@@ -42,16 +42,16 @@ class FinancialCategoryService
 
     public function update(array $data, string $uuid)
     {
-        return $this->eloquentFinancialCategoryRepository->update($this->findByUuid($uuid), $data);
+        return $this->eloquentFinancialCategoryRepository->update($this->findByUuid($uuid, $data['user_id']), $data);
     }
 
-    public function delete(string $uuid)
+    public function delete(string $uuid, int $userId)
     {
-        $this->eloquentFinancialCategoryRepository->delete($this->findByUuid($uuid));
+        $this->eloquentFinancialCategoryRepository->delete($this->findByUuid($uuid, $userId));
     }
 
-    public function active(string $uuid)
+    public function active(string $uuid, int $userId)
     {
-        $this->eloquentFinancialCategoryRepository->active($this->findByUuid($uuid));
+        $this->eloquentFinancialCategoryRepository->active($this->findByUuid($uuid, $userId));
     }
 }

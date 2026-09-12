@@ -17,18 +17,18 @@ class FinancialAccountService
         return $this->eloquentFinancialAccountRepository->all();
     }
 
-        public function find(string|int $id): FinancialAccount
+        public function find(string|int $id, int $userId): FinancialAccount
     {
-        $financialAccount = $this->eloquentFinancialAccountRepository->find($id);
+        $financialAccount = $this->eloquentFinancialAccountRepository->find($id, $userId);
 
         if ( ! $financialAccount ) throw new ModelNotFoundException('Categoria financeira não localizada.');
 
         return $financialAccount;
     }
 
-    public function findByUuid(string $uuid): FinancialAccount
+    public function findByUuid(string $uuid, int $userId): FinancialAccount
     {
-        $financialAccount = $this->eloquentFinancialAccountRepository->findByUuid($uuid);
+        $financialAccount = $this->eloquentFinancialAccountRepository->findByUuid($uuid, $userId);
 
         if ( ! $financialAccount ) throw new ModelNotFoundException('Conta financeira não localizada.');
 
@@ -37,21 +37,27 @@ class FinancialAccountService
 
     public function create(array $data): FinancialAccount
     {
-        return $this->eloquentFinancialAccountRepository->create($data);
+        return $this->eloquentFinancialAccountRepository->create([
+            'user_id' => $data['user_id'],
+            'name' => $data['name'],
+            'type' => $data['type'],
+            'initial_balance' => $data['initial_balance'],
+            'current_balance' => $data['initial_balance'],
+        ]);
     }
 
     public function update(array $data, string $uuid)
     {
-        return $this->eloquentFinancialAccountRepository->update($this->findByUuid($uuid), $data);
+        return $this->eloquentFinancialAccountRepository->update($this->findByUuid($uuid, $data['user_id']), $data);
     }
 
-    public function delete(string $uuid)
+    public function delete(string $uuid, int $userId)
     {
-        $this->eloquentFinancialAccountRepository->delete($this->findByUuid($uuid));
+        $this->eloquentFinancialAccountRepository->delete($this->findByUuid($uuid, $userId));
     }
 
-    public function active(string $uuid)
+    public function active(string $uuid, int $userId)
     {
-        $this->eloquentFinancialAccountRepository->active($this->findByUuid($uuid));
+        $this->eloquentFinancialAccountRepository->active($this->findByUuid($uuid, $userId));
     }
 }

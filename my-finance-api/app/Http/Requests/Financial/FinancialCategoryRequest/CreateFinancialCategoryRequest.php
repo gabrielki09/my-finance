@@ -26,7 +26,6 @@ class CreateFinancialCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'exists:users,id'],
             'name' => ['required', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')],
             'type' => ['required', Rule::enum(FinancialCategoryTypes::class)],
             'color' => ['sometimes', 'max:120'],
@@ -37,8 +36,6 @@ class CreateFinancialCategoryRequest extends FormRequest
     public function messages()
     {
         return [
-            'user_id.required' => 'O identificador do usuário responsável é obrigatório.',
-            'user_id.exists' => 'O usuário responsável deve ser um usuário válido.',
             'name.required' => 'O nome da categoria financeira é obrigatório.',
             'name.min' => 'O nome da categoria financeira deve conter no minímo :min caracteres.',
             'name.max' => 'O nome da categoria financeira deve conter no máximo :max caracteres.',

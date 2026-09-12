@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Financial\FinancialCategoryRequest;
 
+use App\Enum\Financial\FinancialAccountTypes;
 use App\Models\Financial\FinancialCategory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -25,20 +26,24 @@ class CreateFinancialAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'exists:users,id'],
-            'name' => ['required', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')]
+            'name' => ['required', 'min:3', 'max:255', Rule::unique(FinancialCategory::class, 'name')],
+            'type' => ['required', Rule::enum(FinancialAccountTypes::class)],
+            'initial_balance' => ['required', 'numeric', 'min:0.01']
         ];
     }
 
     public function messages()
     {
         return [
-            'user_id.required' => 'O identificador do usuário responsável é obrigatório.',
-            'user_id.exists' => 'O usuário responsável deve ser um usuário válido.',
             'name.required' => 'O nome da categoria financeira é obrigatório.',
             'name.min' => 'O nome da categoria financeira deve conter no minímo :min caracteres.',
             'name.max' => 'O nome da categoria financeira deve conter no máximo :max caracteres.',
             'name.unique' => 'Essa categoria financeira já está cadastrada.',
+            'type.required' => 'O tipo da conta financiera é obrigatória.',
+            'type.enum' => 'O tipo da conta fincaneira precisa ser uma conta válida.',
+            'initial_balance.required' => 'O saldo inicial da conta financeira é obrigatório.',
+            'initial_balance.numeric' => 'O saldo inicial da conta financeira deve ser um número válido.',
+            'initial_balance.min' => 'O saldo inicial da conta financeira deve ser pelo R$ :min .',
         ];
     }
 }
