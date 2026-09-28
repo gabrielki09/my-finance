@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"finance/internal/config"
 	"finance/internal/helpers/response"
 	"finance/internal/logger"
 	categoryesroutes "finance/internal/modules/categories/routes"
@@ -8,21 +9,15 @@ import (
 	financialaccountroutes "finance/internal/modules/financial_accounts/routes"
 	financialobligationsroutes "finance/internal/modules/financial_obligations/routes"
 	"finance/internal/routes/cors"
+	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func StartServer(db *pgxpool.Pool) {
+func StartServer(db *pgxpool.Pool, apiConfig *config.ApiConfig) {
 	rootMux := http.NewServeMux()
 	publicMux := http.NewServeMux()
-
-	port := os.Getenv("PORT")
-
-	if port == "" {
-		port = "8000"
-	}
 
 	rootMux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
 		response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
@@ -40,9 +35,9 @@ func StartServer(db *pgxpool.Pool) {
 
 	handlerWithCORS := cors.WithCORS(rootMux)
 
-	logger.General.Info.Printf("Servidor rodando em http://localhost:%s/api", port)
+	logger.Info(fmt.Sprintf("Servidor rodando em http://localhost:%s/api", apiConfig.Port))
 
-	if err := http.ListenAndServe(":"+port, handlerWithCORS); err != nil {
-		logger.General.Info.Fatal("Erro ao iniciar o servidor:", err)
+	if err := http.ListenAndServe(":"+apiConfig.Port, handlerWithCORS); err != nil {
+		logger.Error("Erro ao iniciar o servidor:", err)
 	}
 }

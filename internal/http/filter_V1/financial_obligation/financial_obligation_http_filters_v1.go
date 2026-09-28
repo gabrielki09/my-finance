@@ -14,7 +14,7 @@ import (
 )
 
 func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
-	logger.General.Info.Println("Vai conferir os filtros inseridos na rota")
+	logger.Info("Vai conferir os filtros inseridos na rota")
 
 	errors := apperrors.ValidationErrors{}
 
@@ -42,7 +42,7 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 		categoryId, err := strconv.Atoi(c)
 
 		if err != nil {
-			logger.General.Error.Println("Erro ao converter o ID da categoria:", err)
+			logger.Error("Erro ao converter o ID da categoria:", err)
 
 			errors["category_id"] = append(errors["category_id"], "Tipo da categoria incoerente com o tipo da obrigação financeira.")
 		} else {
@@ -54,7 +54,7 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 		id, err := strconv.Atoi(c)
 
 		if err != nil {
-			logger.General.Error.Println("Erro ao converter o ID da categoria:", err)
+			logger.Error("Erro ao converter o ID da categoria:", err)
 
 			errors["id"] = append(errors["id"], "Tipo de ID incoerente com o tipo da obrigação financeira.")
 		} else {
@@ -97,7 +97,7 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 	startDueDate := q.Get("start_due_date")
 	endDueDate := q.Get("end_due_date")
 
-	logger.General.Info.Printf("startDueDate: %s, endDueDate: %s", startDueDate, endDueDate)
+	logger.Info("startDueDate: %s, endDueDate: %s", startDueDate, endDueDate)
 
 	if startDueDate != "" && endDueDate == "" {
 		errors["end_due_date"] = append(errors["end_due_date"], "A data final deve ser informada quando a data de inicio for preenchida.")
@@ -107,17 +107,17 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 
 	if startDueDate != "" && endDueDate != "" {
 		if _, err := time.Parse("2006-01-02", startDueDate); err != nil {
-			logger.General.Error.Println("Erro ao convertar a data inicial:", err)
+			logger.Error("Erro ao convertar a data inicial:", err)
 			errors["start_due_date"] = append(errors["start_due_date"], fmt.Sprintln("Erro ao converter a data para YYYY-MM-DD:", err))
 
 		} else if _, err := time.Parse("2006-01-02", endDueDate); err != nil {
-			logger.General.Error.Println("Erro ao convertar a data final:", err)
+			logger.Error("Erro ao convertar a data final:", err)
 			errors["end_due_date"] = append(errors["end_due_date"], fmt.Sprintln("Erro ao converter a data para YYYY-MM-DD:", err))
 
 		}
 
 		if errors["start_due_date"] == nil && errors["end_due_date"] == nil {
-			logger.General.Info.Println("Datas validadas")
+			logger.Info("Datas validadas")
 			qb = qb.Where(squirrel.Expr("due_date BETWEEN ? AND ?", startDueDate, endDueDate))
 		}
 	}
@@ -129,11 +129,11 @@ func ParseFinancialObligationFilters(r *http.Request) (string, []any, error) {
 	query, args, err := qb.ToSql()
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao converter o builder para SQL:", err)
+		logger.Error("Erro ao converter o builder para SQL:", err)
 		return "", nil, err
 	}
 
-	logger.General.Info.Printf("SQL gerado pelo http_filter %s, filtros: %s", query, args)
+	logger.Info("SQL gerado pelo http_filter %s, filtros: %s", query, args)
 
 	return query, args, nil
 }

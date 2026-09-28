@@ -13,7 +13,7 @@ type CancelFinancialTransactionRequest struct {
 }
 
 func (c CancelFinancialTransactionRequest) ValidatePayload() apperrors.ValidationErrors {
-	logger.General.Info.Println("---- Vai validar o payload da movimentação financeira via request ----")
+	logger.Info("---- Vai validar o payload da movimentação financeira via request ----")
 
 	errors := apperrors.ValidationErrors{}
 
@@ -31,6 +31,6 @@ func (c CancelFinancialTransactionRequest) ValidatePayload() apperrors.Validatio
 		errors["idempotency_key"] = append(errors["idempotency_key"], "O identificador da transação financeira é inválido.")
 	}
 
-	logger.General.Info.Printf("---- Terminou de validar o payload da movimentação financeira, total de erros: %d ----", len(errors))
+	logger.Info("---- Terminou de validar o payload da movimentação financeira, total de erros: %d ----", len(errors))
 	return errors
 }

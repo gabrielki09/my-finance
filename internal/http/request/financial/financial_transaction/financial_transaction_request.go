@@ -49,7 +49,7 @@ func validateFinancialTransactionsOperationType(t financialmodel.FinancialTransa
 }
 
 func (f FinancialTransactionRequest) ValidatePayload() apperrors.ValidationErrors {
-	logger.General.Info.Println("---- Vai validar o payload da movimentação financeira via request ----")
+	logger.Info("---- Vai validar o payload da movimentação financeira via request ----")
 
 	errors := apperrors.ValidationErrors{}
 
@@ -95,6 +95,6 @@ func (f FinancialTransactionRequest) ValidatePayload() apperrors.ValidationError
 		errors["operation_type"] = append(errors["operation_type"], "O tipo da operação financeira está inválido.")
 	}
 
-	logger.General.Info.Printf("---- Terminou de validar o payload da movimentação financeira, total de erros: %d ----", len(errors))
+	logger.Info("---- Terminou de validar o payload da movimentação financeira, total de erros: %d ----", len(errors))
 	return errors
 }

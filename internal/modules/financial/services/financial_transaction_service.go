@@ -35,7 +35,7 @@ func (f *FinancialTransactionService) GetAll(ctx context.Context) ([]financialre
 	financialTransactions, err := f.repository.GetAll(ctx)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao retornar todas as transações financeiras:", err)
+		logger.Error("Erro ao retornar todas as transações financeiras:", err)
 		return []financialresponse.FinancialTransactionsResponse{}, err
 	}
 
@@ -46,7 +46,7 @@ func (f *FinancialTransactionService) FindById(ctx context.Context, financialTra
 	financialTransaction, err := f.repository.FindById(ctx, financialTransactionId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao retornar todas as transações financeiras:", err)
+		logger.Error("Erro ao retornar todas as transações financeiras:", err)
 		return financialresponse.FinancialTransactionsResponse{}, err
 
 	}
@@ -59,7 +59,7 @@ func (f *FinancialTransactionService) FindByKey(ctx context.Context, key string)
 	financialTransaction, err := f.repository.FindByKey(ctx, key)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao retornar todas as transações financeiras:", err)
+		logger.Error("Erro ao retornar todas as transações financeiras:", err)
 
 		return financialresponse.FinancialTransactionsResponse{}, err
 	}

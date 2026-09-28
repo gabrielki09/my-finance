@@ -35,7 +35,7 @@ func NewFinancialTransactionController(service FinancialTransactionService) *Fin
 }
 
 func (c *FinancialTransactionController) GetAll(w http.ResponseWriter, r *http.Request) {
-	logger.General.Info.Println("FinancialTransactionController - GetAll")
+	logger.Info("FinancialTransactionController - GetAll")
 
 	financialTransactions, err := c.service.GetAll(r.Context())
 
@@ -54,7 +54,7 @@ func (c *FinancialTransactionController) GetAll(w http.ResponseWriter, r *http.R
 }
 
 func (c *FinancialTransactionController) FindById(w http.ResponseWriter, r *http.Request) {
-	logger.General.Info.Println("FinancialTransactionController - FindById")
+	logger.Info("FinancialTransactionController - FindById")
 
 	financialTransactionId, err := getidpath.GetIdPath(r)
 
@@ -91,7 +91,7 @@ func (c *FinancialTransactionController) FindById(w http.ResponseWriter, r *http
 }
 
 func (c *FinancialTransactionController) FindByKey(w http.ResponseWriter, r *http.Request) {
-	logger.General.Info.Println("FinancialTransactionController - FindByKey")
+	logger.Info("FinancialTransactionController - FindByKey")
 
 	financialTransactionKey := r.PathValue("key")
 
@@ -120,7 +120,7 @@ func (c *FinancialTransactionController) FindByKey(w http.ResponseWriter, r *htt
 }
 
 func (c *FinancialTransactionController) CreateMovement(w http.ResponseWriter, r *http.Request) {
-	logger.General.Info.Println("FinancialTransactionController - CreateMovement")
+	logger.Info("FinancialTransactionController - CreateMovement")
 
 	var payload financialtransactionrequest.FinancialTransactionRequest
 

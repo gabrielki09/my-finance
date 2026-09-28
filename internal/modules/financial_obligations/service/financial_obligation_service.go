@@ -38,7 +38,7 @@ func (f *FinancialObligationService) GetAll(ctx context.Context, query string, a
 	financialObligations, err := f.repository.GetAll(ctx, query, args)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao retornar todas as obrigações financeiras:", err)
+		logger.Error("Erro ao retornar todas as obrigações financeiras:", err)
 		return []financialresponse.FinancialObligationResponse{}, err
 	}
 
@@ -55,14 +55,14 @@ func (f *FinancialObligationService) Create(ctx context.Context, payload financi
 	}
 
 	if err := f.validator.ValidatePayload(ctx, payload); err != nil {
-		logger.General.Error.Println("Erro na validação de dados:", err)
+		logger.Error("Erro na validação de dados:", err)
 		return financialresponse.FinancialObligationResponse{}, err
 	}
 
 	financialObligation, err := f.repository.Create(ctx, payload)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao criar a conta financeira:", err)
+		logger.Error("Erro ao criar a conta financeira:", err)
 		return financialresponse.FinancialObligationResponse{}, err
 	}
 
@@ -71,7 +71,7 @@ func (f *FinancialObligationService) Create(ctx context.Context, payload financi
 
 func (f *FinancialObligationService) Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialresponse.FinancialObligationResponse, error) {
 
-	logger.General.Info.Println("FinancialObligationService - Update")
+	logger.Info("FinancialObligationService - Update")
 
 	validation := payload.ValidatePayload()
 
@@ -80,14 +80,14 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 	}
 
 	if err := f.validator.ValidateUpdatePayload(ctx, payload, financialObligationId); err != nil {
-		logger.General.Error.Println("Erro na validação de dados:", err)
+		logger.Error("Erro na validação de dados:", err)
 		return financialresponse.FinancialObligationResponse{}, err
 	}
 
 	financialObligation, err := f.repository.Update(ctx, payload, financialObligationId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao criar a conta financeira:", err)
+		logger.Error("Erro ao criar a conta financeira:", err)
 		return financialresponse.FinancialObligationResponse{}, err
 	}
 
@@ -97,12 +97,12 @@ func (f *FinancialObligationService) Update(ctx context.Context, payload financi
 func (f *FinancialObligationService) Cancel(ctx context.Context, financialObligationId int) error {
 
 	if err := f.validator.ValidateCancel(ctx, financialObligationId); err != nil {
-		logger.General.Error.Println("Erro ao validar a obrigação financeira para o cancelamento:", err)
+		logger.Error("Erro ao validar a obrigação financeira para o cancelamento:", err)
 		return err
 	}
 
 	if err := f.repository.Cancel(ctx, financialObligationId); err != nil {
-		logger.General.Error.Println("Erro ao cancelar a obrigação financeira:", err)
+		logger.Error("Erro ao cancelar a obrigação financeira:", err)
 		return err
 	}
 
@@ -111,12 +111,12 @@ func (f *FinancialObligationService) Cancel(ctx context.Context, financialObliga
 
 func (f *FinancialObligationService) PayFinancialObligation(ctx context.Context, payload financialobligationrequest.PayFinancialObligationRequest) error {
 	if err := f.validator.ValidatePayObligationPayload(ctx, payload); err != nil {
-		logger.General.Error.Println("Erro ao validar os dados para o pagamento da obrigação financeira:", err)
+		logger.Error("Erro ao validar os dados para o pagamento da obrigação financeira:", err)
 		return err
 	}
 
 	if err := f.repository.PayFinancialObligation(ctx, payload); err != nil {
-		logger.General.Error.Println("Erro ao pagar a obrigação financeira:", err)
+		logger.Error("Erro ao pagar a obrigação financeira:", err)
 		return err
 	}
 

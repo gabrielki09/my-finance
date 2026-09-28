@@ -27,7 +27,7 @@ func NewFinancialTransactionValidator(financialTransactionRepository FinancialTr
 }
 
 func (f *FinancialTransactionValidator) ValidatePayload(ctx context.Context, payload financialtransactionrequest.FinancialTransactionRequest) error {
-	logger.General.Info.Println("---- Vai validar o payload do movimento financeiro via db ----")
+	logger.Info("---- Vai validar o payload do movimento financeiro via db ----")
 
 	appErrors := apperrors.ValidationErrors{}
 
@@ -39,7 +39,7 @@ func (f *FinancialTransactionValidator) ValidatePayload(ctx context.Context, pay
 			return apperrors.NewValidationError(appErrors)
 		}
 
-		logger.General.Error.Println("Erro ao válidar se o tipo da transação financeira é coerente com o tipo de movimento financeiro:", err)
+		logger.Error("Erro ao válidar se o tipo da transação financeira é coerente com o tipo de movimento financeiro:", err)
 		return err
 	}
 
@@ -47,7 +47,7 @@ func (f *FinancialTransactionValidator) ValidatePayload(ctx context.Context, pay
 		appErrors["category_id"] = append(appErrors["category_id"], "Tipo da categoria incoerente com o tipo da movimentação financeira.")
 	}
 
-	logger.General.Info.Printf("---- Terminou de validar o payload da transação financeira, total de erros: %d ----", len(appErrors))
+	logger.Info("---- Terminou de validar o payload da transação financeira, total de erros: %d ----", len(appErrors))
 
 	if len(appErrors) > 0 {
 		return apperrors.NewValidationError(appErrors)

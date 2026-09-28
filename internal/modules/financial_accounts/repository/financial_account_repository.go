@@ -47,7 +47,7 @@ func (f *FinancialAccountRepository) GetAll(ctx context.Context) ([]financialmod
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao exceutar o select:", err)
+		logger.Error("Erro ao exceutar o select:", err)
 		return []financialmodel.FinancialAccountModel{}, err
 	}
 
@@ -65,7 +65,7 @@ func (f *FinancialAccountRepository) GetAll(ctx context.Context) ([]financialmod
 			&financialAccount.CreatedAt,
 			&financialAccount.UpdatedAt,
 		); err != nil {
-			logger.General.Error.Println("Erro ao ler os dados do select:", err)
+			logger.Error("Erro ao ler os dados do select:", err)
 			return []financialmodel.FinancialAccountModel{}, err
 		}
 
@@ -74,7 +74,7 @@ func (f *FinancialAccountRepository) GetAll(ctx context.Context) ([]financialmod
 	}
 
 	if err := financialAccountsRows.Err(); err != nil {
-		logger.General.Error.Println("Erro ao iterar os dados do select:", err)
+		logger.Error("Erro ao iterar os dados do select:", err)
 		return []financialmodel.FinancialAccountModel{}, err
 	}
 
@@ -117,12 +117,12 @@ func (f *FinancialAccountRepository) Create(ctx context.Context, model financial
 
 	if err != nil {
 
-		logger.General.Error.Println("Erro ao criar a conta financeira:", err)
+		logger.Error("Erro ao criar a conta financeira:", err)
 		if errors.As(err, &pgErr) {
 
 			if pgErr.Code == constantsdbcode.UniqueViolationCode {
-				logger.General.Error.Println(pgErr)
-				logger.General.Error.Println(apperrors.ErrUniqueConstraint.Error())
+				logger.Error("erro do banco de dados", pgErr)
+				logger.Error("erro do banco de dados", apperrors.ErrUniqueConstraint)
 
 				return financialmodel.FinancialAccountModel{}, apperrors.ErrUniqueConstraint
 			}
@@ -164,10 +164,10 @@ func (f *FinancialAccountRepository) FindById(ctx context.Context, financialAcco
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
+		logger.Error("Erro ao ler os dados da consulta:", err)
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			logger.General.Error.Println("O registro não foi localizado:", err)
+			logger.Error("O registro não foi localizado:", err)
 			return financialmodel.FinancialAccountModel{}, apperrors.ErrNotFound
 		}
 
@@ -214,7 +214,7 @@ func (f *FinancialAccountRepository) Update(ctx context.Context, model financial
 		&financialAccount.CreatedAt,
 		&financialAccount.UpdatedAt,
 	); err != nil {
-		logger.General.Error.Println("Erro ao alterar os dados da conta bancaria:", err)
+		logger.Error("Erro ao alterar os dados da conta bancaria:", err)
 		return financialAccount, err
 	}
 
@@ -235,7 +235,7 @@ func (f *FinancialAccountRepository) Delete(ctx context.Context, financialAccoun
 		`,
 		financialAccountId,
 	); err != nil {
-		logger.General.Error.Println("Erro ao deletar os a conta financeira:", err)
+		logger.Error("Erro ao deletar os a conta financeira:", err)
 		return err
 	}
 
@@ -256,7 +256,7 @@ func (f *FinancialAccountRepository) Active(ctx context.Context, financialAccoun
 		`,
 		financialAccountId,
 	); err != nil {
-		logger.General.Error.Println("Erro ao ativar a conta financeira:", err)
+		logger.Error("Erro ao ativar a conta financeira:", err)
 		return err
 	}
 
@@ -284,10 +284,10 @@ func (f *FinancialAccountRepository) VerifyExistsFinancialAccountName(ctx contex
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
+		logger.Error("Erro ao ler os dados da consulta:", err)
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			logger.General.Info.Println("A conta financeira não existe")
+			logger.Info("A conta financeira não existe")
 			return nil, nil
 		}
 
@@ -341,7 +341,7 @@ func (f *FinancialAccountRepository) GetCurrentBalance(ctx context.Context, fina
 		&currentBalanceBody.Name,
 		&currentBalanceBody.Balance,
 	); err != nil {
-		logger.General.Error.Println("Erro ao consultar o balanço total da conta financeira:", err)
+		logger.Error("Erro ao consultar o balanço total da conta financeira:", err)
 
 		return financialresponse.FinancialCurrentBalanceResponse{}, err
 	}

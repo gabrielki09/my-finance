@@ -16,7 +16,7 @@ func WithTransaction(
 	tx, err := db.Begin(ctx)
 
 	if err != nil {
-		logger.General.Info.Println("Erro ao iniciar a transação:", err)
+		logger.Info("Erro ao iniciar a transação:", err)
 		return err
 	}
 
@@ -27,7 +27,7 @@ func WithTransaction(
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		logger.General.Error.Println("Erro ao commitar a transação:", err)
+		logger.Error("Erro ao commitar a transação:", err)
 		return err
 	}
 
@@ -43,7 +43,7 @@ func WithTransactionResult[T any](
 
 	tx, err := db.Begin(ctx)
 	if err != nil {
-		logger.General.Error.Println("Erro ao iniciar a transação:", err)
+		logger.Error("Erro ao iniciar a transação:", err)
 		return zero, err
 	}
 
@@ -56,7 +56,7 @@ func WithTransactionResult[T any](
 	}
 
 	if err := tx.Commit(ctx); err != nil {
-		logger.General.Error.Println("Erro ao commitar a transação:", err)
+		logger.Error("Erro ao commitar a transação:", err)
 		return zero, err
 	}
 

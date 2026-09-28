@@ -29,7 +29,7 @@ func (v *FinancialAccountValidator) ValidatePayload(ctx context.Context, payload
 	financialAccountByName, err := v.repo.VerifyExistsFinancialAccountName(ctx, payload.Name)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao conferir se a conta financeira já existe pelo nome: ", err)
+		logger.Error("Erro ao conferir se a conta financeira já existe pelo nome: ", err)
 		return err
 	}
 

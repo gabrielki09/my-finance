@@ -54,7 +54,7 @@ func (f *FinancialTransactionRepository) GetAll(ctx context.Context) ([]financia
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao executar o select:", err)
+		logger.Error("Erro ao executar o select:", err)
 		return []financialmodel.FinancialTransactionsModel{}, err
 	}
 
@@ -80,7 +80,7 @@ func (f *FinancialTransactionRepository) GetAll(ctx context.Context) ([]financia
 			&financialTransaction.CreatedAt,
 			&financialTransaction.CanceledAt,
 		); err != nil {
-			logger.General.Error.Println("Erro ao ler os dados do select:", err)
+			logger.Error("Erro ao ler os dados do select:", err)
 			return []financialmodel.FinancialTransactionsModel{}, err
 		}
 
@@ -136,10 +136,10 @@ func (f *FinancialTransactionRepository) FindById(ctx context.Context, financial
 		&financialTransaction.CreatedAt,
 		&financialTransaction.CanceledAt,
 	); err != nil {
-		logger.General.Error.Println("Erro ao ler os dados do select:", err)
+		logger.Error("Erro ao ler os dados do select:", err)
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			logger.General.Error.Println("O registro não foi localizado:", err)
+			logger.Error("O registro não foi localizado:", err)
 			return financialmodel.FinancialTransactionsModel{}, apperrors.ErrNotFound
 
 		}
@@ -195,10 +195,10 @@ func (f *FinancialTransactionRepository) FindByKey(ctx context.Context, key stri
 		&financialTransaction.CreatedAt,
 		&financialTransaction.CanceledAt,
 	); err != nil {
-		logger.General.Error.Println("Erro ao ler os dados do select:", err)
+		logger.Error("Erro ao ler os dados do select:", err)
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			logger.General.Error.Println("O registro não foi localizado:", err)
+			logger.Error("O registro não foi localizado:", err)
 			return financialmodel.FinancialTransactionsModel{}, apperrors.ErrNotFound
 
 		}
@@ -276,7 +276,7 @@ func (f *FinancialTransactionRepository) CreateMovement(ctx context.Context, pay
 				&financialTransaction.CreatedAt,
 				&financialTransaction.CanceledAt,
 			); err != nil {
-				logger.General.Error.Println("Erro ao fazer o insert da transação financeira:", err)
+				logger.Error("Erro ao fazer o insert da transação financeira:", err)
 				return err
 			}
 
@@ -295,7 +295,7 @@ func (f *FinancialTransactionRepository) CreateMovement(ctx context.Context, pay
 					payload.FinancialAccountId,
 					payload.Amount,
 				); err != nil {
-					logger.General.Error.Println("Erro ao alterar o agregar o valor da conta financeira:", err)
+					logger.Error("Erro ao alterar o agregar o valor da conta financeira:", err)
 
 					return err
 				}
@@ -316,7 +316,7 @@ func (f *FinancialTransactionRepository) CreateMovement(ctx context.Context, pay
 					payload.FinancialAccountId,
 					payload.Amount,
 				); err != nil {
-					logger.General.Error.Println("Erro ao alterar o descontar o valor da conta financeira:", err)
+					logger.Error("Erro ao alterar o descontar o valor da conta financeira:", err)
 
 					return err
 				}
@@ -350,7 +350,7 @@ func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 			}
 
 			if financialTransaction.MovementType == "entry" {
-				logger.General.General.Println("A operação que está sendo cancelada é uma operação de entrada, vai descontar o valor da conta financeira referenciada.")
+				logger.Info("A operação que está sendo cancelada é uma operação de entrada, vai descontar o valor da conta financeira referenciada.")
 
 				if _, err := tx.Exec(
 					ctx,
@@ -365,14 +365,14 @@ func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 					financialTransaction.Id,
 					financialTransaction.Amount,
 				); err != nil {
-					logger.General.Error.Println("Erro ao atualizar o saldo da conta financeira:", err)
+					logger.Error("Erro ao atualizar o saldo da conta financeira:", err)
 
 					return err
 				}
 			}
 
 			if financialTransaction.MovementType == "exit" {
-				logger.General.General.Println("A operação que está sendo cancelada é uma operação de saída, vai acrescentar o valor da conta financeira referenciada.")
+				logger.Info("A operação que está sendo cancelada é uma operação de saída, vai acrescentar o valor da conta financeira referenciada.")
 				if _, err := tx.Exec(
 					ctx,
 					`
@@ -386,7 +386,7 @@ func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 					financialTransaction.Id,
 					financialTransaction.Amount,
 				); err != nil {
-					logger.General.Error.Println("Erro ao atualizar o saldo da conta financeira:", err)
+					logger.Error("Erro ao atualizar o saldo da conta financeira:", err)
 
 					return err
 				}
@@ -427,7 +427,7 @@ func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 				financialTransaction.MovementDate,
 				financialTransaction.ReferenceDate,
 			); err != nil {
-				logger.General.Error.Println("Erro ao fazer o insert do cancelamento")
+				logger.Error("Erro ao fazer o insert do cancelamento", err)
 
 				return err
 			}
@@ -480,7 +480,7 @@ func (f *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, 
 			`,
 			categoryId,
 		).Scan(&checkedCategoryType); err != nil {
-			logger.General.Error.Println("Erro ao conferir se a categoria é válida para a operação")
+			logger.Error("Erro ao conferir se a categoria é válida para a operação", err)
 			return false, err
 		}
 	case financialmodel.EXIT:
@@ -499,7 +499,7 @@ func (f *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, 
 			`,
 			categoryId,
 		).Scan(&checkedCategoryType); err != nil {
-			logger.General.Error.Println("Erro ao conferir se a categoria é válida para a operação")
+			logger.Error("Erro ao conferir se a categoria é válida para a operação", err)
 			return false, err
 		}
 	default:
@@ -510,7 +510,7 @@ func (f *FinancialTransactionRepository) ValidCategoryType(ctx context.Context, 
 }
 
 func (f *FinancialTransactionRepository) ValidateIsSameIdAndIdempotencyKey(ctx context.Context, financialTransactionId int, idempotencyKey string) (exists bool, err error) {
-	logger.General.Info.Println("Called ValidateIsSameIdAndIdempotencyKey")
+	logger.Info("Called ValidateIsSameIdAndIdempotencyKey")
 
 	if err := f.db.QueryRow(
 		ctx,
@@ -533,7 +533,7 @@ func (f *FinancialTransactionRepository) ValidateIsSameIdAndIdempotencyKey(ctx c
 	).Scan(
 		&exists,
 	); err != nil {
-		logger.General.Error.Println("Erro ao conferir se a transação existe:", err)
+		logger.Error("Erro ao conferir se a transação existe:", err)
 		return exists, err
 	}
 

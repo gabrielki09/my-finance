@@ -32,7 +32,7 @@ func NewFinancialObligationRepository(db *pgxpool.Pool) *FinancialObligationRepo
 func (f FinancialObligationRepository) GetAll(ctx context.Context, query string, args []any) ([]financialmodel.FinancialObligationModel, error) {
 	var financialObligations []financialmodel.FinancialObligationModel
 
-	logger.General.Info.Println("Query:", query)
+	logger.Info("Query:", query)
 
 	financialObligationRows, err := f.db.Query(
 		ctx,
@@ -41,7 +41,7 @@ func (f FinancialObligationRepository) GetAll(ctx context.Context, query string,
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao executar o select:", err)
+		logger.Error("Erro ao executar o select:", err)
 		return []financialmodel.FinancialObligationModel{}, err
 	}
 
@@ -63,7 +63,7 @@ func (f FinancialObligationRepository) GetAll(ctx context.Context, query string,
 			&financialObligation.CreatedAt,
 			&financialObligation.UpdatedAt,
 		); err != nil {
-			logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
+			logger.Error("Erro ao ler os dados da consulta:", err)
 			return []financialmodel.FinancialObligationModel{}, err
 		}
 
@@ -71,7 +71,7 @@ func (f FinancialObligationRepository) GetAll(ctx context.Context, query string,
 	}
 
 	if err := financialObligationRows.Err(); err != nil {
-		logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
+		logger.Error("Erro ao ler os dados da consulta:", err)
 		return []financialmodel.FinancialObligationModel{}, err
 	}
 
@@ -145,20 +145,20 @@ func (f *FinancialObligationRepository) Create(ctx context.Context, payload fina
 }
 
 func (f *FinancialObligationRepository) Update(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest, financialObligationId int) (financialmodel.FinancialObligationModel, error) {
-	logger.General.Info.Println("FinancialObligationRepository - Update")
+	logger.Info("FinancialObligationRepository - Update")
 
 	financialObligation, err := f.FindById(ctx, financialObligationId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao localizar a obrigação financeira:", err)
+		logger.Error("Erro ao localizar a obrigação financeira:", err)
 		return financialmodel.FinancialObligationModel{}, err
 	}
 
-	logger.General.Info.Println("financialObligation:", financialObligation)
+	logger.Info("financialObligation:", financialObligation)
 
 	switch financialObligation.Status {
 	case financialmodel.PARTIALLY_SETTLED:
-		logger.General.Info.Println("Status atual: ", financialmodel.PARTIALLY_SETTLED)
+		logger.Info("Status atual: ", financialmodel.PARTIALLY_SETTLED)
 
 		if err := f.db.QueryRow(
 			ctx,
@@ -204,7 +204,7 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 		}
 
 	case financialmodel.PENDING:
-		logger.General.Info.Println("Status atual: ", financialmodel.PENDING)
+		logger.Info("Status atual: ", financialmodel.PENDING)
 
 		if err := f.db.QueryRow(
 			ctx,
@@ -260,7 +260,7 @@ func (f *FinancialObligationRepository) Update(ctx context.Context, payload fina
 }
 
 func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, categoryId int, obligationType financialmodel.FinancialObligationsTypes) (bool, error) {
-	logger.General.Info.Println("FinancialObligationRepository - ValidCategoryType")
+	logger.Info("FinancialObligationRepository - ValidCategoryType")
 	var checkedCategoryType bool
 
 	if err := f.db.QueryRow(
@@ -285,17 +285,17 @@ func (f *FinancialObligationRepository) ValidCategoryType(ctx context.Context, c
 		categoryId,
 		obligationType,
 	).Scan(&checkedCategoryType); err != nil {
-		logger.General.Error.Println("Erro ao conferir a categoria:", err)
+		logger.Error("Erro ao conferir a categoria:", err)
 		return false, err
 	}
 
-	logger.General.Error.Println("Categoria é válida?", checkedCategoryType)
+	logger.Info("Categoria é válida?", checkedCategoryType)
 
 	return checkedCategoryType, nil
 }
 
 func (f *FinancialObligationRepository) FindById(ctx context.Context, financialObligationId int) (financialmodel.FinancialObligationModel, error) {
-	logger.General.Info.Println("FinancialObligationRepository - FindById")
+	logger.Info("FinancialObligationRepository - FindById")
 
 	var financialObligation financialmodel.FinancialObligationModel
 
@@ -333,7 +333,7 @@ func (f *FinancialObligationRepository) FindById(ctx context.Context, financialO
 		&financialObligation.CreatedAt,
 		&financialObligation.UpdatedAt,
 	); err != nil {
-		logger.General.Error.Println("Erro ao localizar a obrigação financeiro pelo ID:", err)
+		logger.Error("Erro ao localizar a obrigação financeiro pelo ID:", err)
 
 		if errors.Is(err, pgx.ErrNoRows) {
 			return financialObligation, apperrors.ErrNotFound
@@ -392,7 +392,7 @@ func (f *FinancialObligationRepository) insertObligationSettlement(
 		financialTransactionId,
 		payload.AmountPaid,
 	); err != nil {
-		logger.General.Error.Println("Erro ao criar o registro de pagamento da obrigação financeira:", err)
+		logger.Error("Erro ao criar o registro de pagamento da obrigação financeira:", err)
 		return err
 	}
 
@@ -412,7 +412,7 @@ func (f *FinancialObligationRepository) insertPaymentFinancialTransaction(
 		fmt.Sprintf("Pagamento parcial da obrigação financeira N° %d ", financialObligation.Id),
 	)
 
-	logger.General.Info.Println("description:", description)
+	logger.Info("description:", description)
 
 	if err := tx.QueryRow(
 		ctx,
@@ -460,7 +460,7 @@ func (f *FinancialObligationRepository) insertPaymentFinancialTransaction(
 		"financial_obligation",
 		payload.FinancialObligationId,
 	).Scan(&id); err != nil {
-		logger.General.Error.Println("Erro ao criar o registro da transação do pagamento da obrigação financeira:", err)
+		logger.Error("Erro ao criar o registro da transação do pagamento da obrigação financeira:", err)
 		return id, err
 	}
 
@@ -504,7 +504,7 @@ func (f *FinancialObligationRepository) selectFinancialObligationForUpdate(
 		&financialObligation.CompetenceDate,
 		&financialObligation.Notes,
 	); err != nil {
-		logger.General.Error.Println("Erro ao localizar a obrigação financeiro pelo ID:", err)
+		logger.Error("Erro ao localizar a obrigação financeiro pelo ID:", err)
 		return financialObligation, err
 	}
 	return financialObligation, err
@@ -618,13 +618,13 @@ func (f *FinancialObligationRepository) PayFinancialObligation(
 		func(tx pgx.Tx) error {
 			financialObligation, err := f.selectFinancialObligationForUpdate(ctx, tx, payload.FinancialObligationId)
 			if err != nil {
-				logger.General.Error.Println("Erro ao localizar a obrigação financeira que será paga:", err)
+				logger.Error("Erro ao localizar a obrigação financeira que será paga:", err)
 				return err
 			}
 
 			outstandingBalance, err := calculateOutstandingBalance(ctx, tx, financialObligation.Id)
 			if err != nil {
-				logger.General.Error.Println("Erro ao calcular o saldo pendente da obrigação financeira:", err)
+				logger.Error("Erro ao calcular o saldo pendente da obrigação financeira:", err)
 				return err
 			}
 
@@ -653,7 +653,7 @@ func (f *FinancialObligationRepository) PayFinancialObligation(
 				outstandingBalance,
 			)
 			if err != nil {
-				logger.General.Error.Println("Erro ao cadastrar a transação financeira: ", err)
+				logger.Error("Erro ao cadastrar a transação financeira: ", err)
 				return err
 			}
 
@@ -663,7 +663,7 @@ func (f *FinancialObligationRepository) PayFinancialObligation(
 				payload,
 				financialTransactionId,
 			); err != nil {
-				logger.General.Error.Println("Erro ao cadastrar a liquidição financeira: ", err)
+				logger.Error("Erro ao cadastrar a liquidição financeira: ", err)
 				return err
 			}
 

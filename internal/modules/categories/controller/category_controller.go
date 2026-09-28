@@ -34,7 +34,7 @@ func NewCategoryController(service CategoryService) *CategoryController {
 }
 
 func (c *CategoryController) GetAll(w http.ResponseWriter, r *http.Request) {
-	logger.General.Info.Println("CategoryController - GetAll")
+	logger.Info("CategoryController - GetAll")
 
 	categories, err := c.service.GetAll(r.Context())
 

@@ -2,9 +2,9 @@ package database
 
 import (
 	"context"
+	"finance/internal/config"
 	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -14,7 +14,7 @@ import (
 
 var Pool *pgxpool.Pool
 
-func Init() (*pgxpool.Pool, error) {
+func ConnectDb(databaseConfig *config.DatabaseConfig) (*pgxpool.Pool, error) {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Erro carregar a .env:", err)
 	}
@@ -23,24 +23,16 @@ func Init() (*pgxpool.Pool, error) {
 		return Pool, nil
 	}
 
-	_ = godotenv.Load()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 35*time.Second)
 	defer cancel()
 
-	dbHost := os.Getenv("DB_HOST")
-	dbPort := os.Getenv("DB_PORT")
-	dbName := os.Getenv("DB_DATABASE")
-	dbUser := os.Getenv("DB_USERNAME")
-	dbPassword := os.Getenv("DB_PASSWORD")
-
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s",
-		dbHost,
-		dbPort,
-		dbUser,
-		dbPassword,
-		dbName,
+		databaseConfig.DbHost,
+		databaseConfig.DbPort,
+		databaseConfig.DbUserName,
+		databaseConfig.DbPassword,
+		databaseConfig.DbDatabase,
 	)
 
 	config, err := pgxpool.ParseConfig(dsn)

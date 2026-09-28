@@ -43,7 +43,7 @@ func splitSeeds(s string) (splited []string) {
 }
 
 func parseYAMLFile() (SeederFile, error) {
-	logger.General.Info.Println("Called parseYAMLFile")
+	logger.Info("Called parseYAMLFile")
 	var data SeederFile
 
 	file, err := seedFiles.ReadFile("seeds.yaml")
@@ -53,7 +53,7 @@ func parseYAMLFile() (SeederFile, error) {
 	}
 
 	if err := yaml.Unmarshal(file, &data); err != nil {
-		logger.General.Error.Println("Erro ao associaro o arquivo yaml:", err)
+		logger.Error("Erro ao associaro o arquivo yaml:", err)
 		return data, err
 	}
 
@@ -77,7 +77,7 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 	tx, err := db.Begin(ctx)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao iniciar a transação:", err)
+		logger.Error("Erro ao iniciar a transação:", err)
 		return err
 	}
 
@@ -87,7 +87,7 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 		}
 
 		if err := tx.Commit(ctx); err != nil {
-			logger.General.Error.Println("Erro ao commitar a transação:", err)
+			logger.Error("Erro ao commitar a transação:", err)
 			return err
 		}
 
@@ -105,7 +105,7 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 			}
 
 			if err := tx.Commit(ctx); err != nil {
-				logger.General.Error.Println("Erro ao commitar a transação:", err)
+				logger.Error("Erro ao commitar a transação:", err)
 				return err
 			}
 		case "category":
@@ -114,7 +114,7 @@ func HandleSeeds(ctx context.Context, db *pgxpool.Pool, seed *string) (err error
 			}
 
 			if err := tx.Commit(ctx); err != nil {
-				logger.General.Error.Println("Erro ao commitar a transação:", err)
+				logger.Error("Erro ao commitar a transação:", err)
 				return err
 			}
 		}
@@ -146,7 +146,7 @@ func runAccount(ctx context.Context, items []AccountSeed, tx pgx.Tx) (err error)
 			item.Name,
 			item.Type,
 		); err != nil {
-			logger.General.Error.Println("Erro ao realizar o insert:", err)
+			logger.Error("Erro ao realizar o insert:", err)
 			return err
 		}
 	}
@@ -166,7 +166,7 @@ func runCategory(ctx context.Context, items []CategorySeed, tx pgx.Tx) (err erro
 			item.Type,
 			item.Color,
 		); err != nil {
-			logger.General.Error.Println("Erro ao realizar o insert:", err)
+			logger.Error("Erro ao realizar o insert:", err)
 			return err
 		}
 	}

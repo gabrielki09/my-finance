@@ -36,7 +36,7 @@ func (s *CategoryService) GetAll(ctx context.Context) ([]categoryresponse.Catego
 	categories, err := s.repository.GetAll(ctx)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao consultar todas as categorias:", err)
+		logger.Error("Erro ao consultar todas as categorias:", err)
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (s *CategoryService) Create(ctx context.Context, payload categoryrequest.Ca
 	category, err := s.repository.Create(ctx, payload)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao criar a categoria:", err)
+		logger.Error("Erro ao criar a categoria:", err)
 		return categoryresponse.CategoryResponse{}, err
 	}
 
@@ -81,7 +81,7 @@ func (s *CategoryService) Update(ctx context.Context, payload categoryrequest.Ca
 	category, err := s.repository.Update(ctx, payload, categoryId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao alterar a categoria:", err)
+		logger.Error("Erro ao alterar a categoria:", err)
 		return categoryresponse.CategoryResponse{}, err
 	}
 
@@ -92,7 +92,7 @@ func (s *CategoryService) FindById(ctx context.Context, categoryId int) (categor
 	category, err := s.repository.FindById(ctx, categoryId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao localizar a categoria:", err)
+		logger.Error("Erro ao localizar a categoria:", err)
 		return categoryresponse.CategoryResponse{}, err
 	}
 
@@ -101,7 +101,7 @@ func (s *CategoryService) FindById(ctx context.Context, categoryId int) (categor
 
 func (s *CategoryService) Delete(ctx context.Context, categoryId int) error {
 	if err := s.repository.Delete(ctx, categoryId); err != nil {
-		logger.General.Error.Println("Erro ao deletar a categoria:", err)
+		logger.Error("Erro ao deletar a categoria:", err)
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (s *CategoryService) Delete(ctx context.Context, categoryId int) error {
 
 func (s *CategoryService) Active(ctx context.Context, categoryId int) error {
 	if err := s.repository.Active(ctx, categoryId); err != nil {
-		logger.General.Error.Println("Erro ao ativar a categoria:", err)
+		logger.Error("Erro ao ativar a categoria:", err)
 		return err
 	}
 

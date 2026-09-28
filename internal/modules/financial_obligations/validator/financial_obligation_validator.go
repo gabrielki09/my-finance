@@ -37,7 +37,7 @@ func parseDates(date string) (*time.Time, error) {
 	parsedDate, err := time.Parse("2006-01-02", date)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao converter a data informada:", err)
+		logger.Error("Erro ao converter a data informada:", err)
 		return nil, err
 
 	}
@@ -61,7 +61,7 @@ func (f *FinancialObligationValidator) validateCategory(ctx context.Context, cat
 	isInvalidType, err := f.repo.ValidCategoryType(ctx, categoryId, movementType)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro:", err)
+		logger.Error("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro:", err)
 		return fmt.Errorf("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro: %s", err)
 	}
 
@@ -74,7 +74,7 @@ func (f *FinancialObligationValidator) validateCategory(ctx context.Context, cat
 
 func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payload financialobligationrequest.FinancialObligationRequest) error {
 
-	logger.General.Info.Println("---- Vai validar o payload do movimento financeiro via db ----")
+	logger.Info("---- Vai validar o payload do movimento financeiro via db ----")
 
 	errors := apperrors.ValidationErrors{}
 
@@ -82,7 +82,7 @@ func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payl
 
 	//category_id
 	if err != nil {
-		logger.General.Error.Println("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro:", err)
+		logger.Error("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro:", err)
 		errors["category_id"] = append(errors["category_id"], err.Error())
 	}
 
@@ -126,7 +126,7 @@ func (f *FinancialObligationValidator) ValidatePayload(ctx context.Context, payl
 		}
 	}
 
-	logger.General.Info.Printf("---- Terminou de validar o payload da transação financeira, total de erros: %d ----", len(errors))
+	logger.Info("---- Terminou de validar o payload da transação financeira, total de erros: %d ----", len(errors))
 
 	if len(errors) > 0 {
 		return apperrors.NewValidationError(errors)
@@ -141,7 +141,7 @@ func (f FinancialObligationValidator) ValidateUpdatePayload(ctx context.Context,
 	financialObligation, err := f.repo.FindById(ctx, financialObligationId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao válidar se a obrigação financeira está parcialmente paga:", err)
+		logger.Error("Erro ao válidar se a obrigação financeira está parcialmente paga:", err)
 		return err
 	}
 
@@ -160,7 +160,7 @@ func (f FinancialObligationValidator) ValidateUpdatePayload(ctx context.Context,
 		err := f.validateCategory(ctx, payload.CategoryId, payload.Type)
 
 		if err != nil {
-			logger.General.Error.Println("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro:", err)
+			logger.Error("Erro ao válidar se o tipo da categoria é coerente com o tipo de movimento financeiro:", err)
 			errors["category_id"] = append(errors["category_id"], err.Error())
 		}
 
@@ -235,7 +235,7 @@ func (f FinancialObligationValidator) ValidateCancel(ctx context.Context, financ
 	financialObligation, err := f.repo.FindById(ctx, financialObligationId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		logger.Error("Erro ao válidar se a obrigação financeira existe:", err)
 		return err
 	}
 
@@ -271,7 +271,7 @@ func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.C
 			return apperrors.NewValidationError(validationErrors)
 		}
 
-		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		logger.Error("Erro ao válidar se a obrigação financeira existe:", err)
 		return err
 	}
 
@@ -281,7 +281,7 @@ func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.C
 			return apperrors.NewValidationError(validationErrors)
 		}
 
-		logger.General.Error.Println("Erro ao válidar se a obrigação financeira existe:", err)
+		logger.Error("Erro ao válidar se a obrigação financeira existe:", err)
 		return err
 	}
 
@@ -323,7 +323,7 @@ func (f FinancialObligationValidator) ValidatePayObligationPayload(ctx context.C
 	}
 
 	if len(validationErrors) > 0 {
-		logger.General.Error.Println(validationErrors)
+		logger.Info("Erros", validationErrors)
 
 		return apperrors.NewValidationError(validationErrors)
 	}

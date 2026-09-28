@@ -46,7 +46,7 @@ func (c *CategoryRepository) GetAll(ctx context.Context) ([]categorymodel.Catego
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao exceutar o select:", err)
+		logger.Error("Erro ao exceutar o select:", err)
 		return []categorymodel.CategoryModel{}, err
 	}
 
@@ -63,7 +63,7 @@ func (c *CategoryRepository) GetAll(ctx context.Context) ([]categorymodel.Catego
 			&category.CreatedAt,
 			&category.UpdatedAt,
 		); err != nil {
-			logger.General.Error.Println("Erro ao ler os dados do select:", err)
+			logger.Error("Erro ao ler os dados do select:", err)
 			return []categorymodel.CategoryModel{}, err
 		}
 
@@ -72,7 +72,7 @@ func (c *CategoryRepository) GetAll(ctx context.Context) ([]categorymodel.Catego
 	}
 
 	if err := categoriesRows.Err(); err != nil {
-		logger.General.Error.Println("Erro ao iterar os dados do select:", err)
+		logger.Error("Erro ao iterar os dados do select:", err)
 		return []categorymodel.CategoryModel{}, err
 	}
 
@@ -111,12 +111,12 @@ func (c *CategoryRepository) Create(ctx context.Context, model categoryrequest.C
 
 	if err != nil {
 
-		logger.General.Error.Println("Erro ao criar a categoria:", err)
+		logger.Error("Erro ao criar a categoria:", err)
 		if errors.As(err, &pgErr) {
 
 			if pgErr.Code == constantsdbcode.UniqueViolationCode {
-				logger.General.Error.Println(pgErr)
-				logger.General.Error.Println(apperrors.ErrUniqueConstraint.Error())
+				logger.Error("erro do banco de dados", pgErr)
+				logger.Error("erro do banco de dados", apperrors.ErrUniqueConstraint)
 
 				return category, apperrors.ErrUniqueConstraint
 			}
@@ -159,10 +159,10 @@ func (c *CategoryRepository) FindById(ctx context.Context, categoryId int) (cate
 	)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao ler os dados da consulta:", err)
+		logger.Error("Erro ao ler os dados da consulta:", err)
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			logger.General.Error.Println("O registro não foi localizado:", err)
+			logger.Error("O registro não foi localizado:", err)
 			return categorymodel.CategoryModel{}, apperrors.ErrNotFound
 		}
 
@@ -209,7 +209,7 @@ func (c *CategoryRepository) Update(ctx context.Context, payload categoryrequest
 				&category.CreatedAt,
 				&category.UpdatedAt,
 			); err != nil {
-				logger.General.Error.Println("Erro ao alterar os dados da categoria:", err)
+				logger.Error("Erro ao alterar os dados da categoria:", err)
 				return err
 			}
 
@@ -233,7 +233,7 @@ func (c *CategoryRepository) Delete(ctx context.Context, categoryId int) error {
 		`,
 		categoryId,
 	); err != nil {
-		logger.General.Error.Println("Erro ao deletar os a categoria:", err)
+		logger.Error("Erro ao deletar os a categoria:", err)
 		return err
 	}
 
@@ -254,7 +254,7 @@ func (c *CategoryRepository) Active(ctx context.Context, categoryId int) error {
 		`,
 		categoryId,
 	); err != nil {
-		logger.General.Error.Println("Erro ao ativar a categoria:", err)
+		logger.Error("Erro ao ativar a categoria:", err)
 		return err
 	}
 
@@ -262,7 +262,7 @@ func (c *CategoryRepository) Active(ctx context.Context, categoryId int) error {
 }
 
 func (c *CategoryRepository) VerifyParentId(ctx context.Context, parentId int) (bool, error) {
-	logger.General.Info.Println("CategoryRepository - VerifyParentId called")
+	logger.Info("CategoryRepository - VerifyParentId called")
 
 	var exists bool
 
@@ -285,16 +285,16 @@ func (c *CategoryRepository) VerifyParentId(ctx context.Context, parentId int) (
 		`,
 		parentId,
 	).Scan(&exists); err != nil {
-		logger.General.Error.Println("Erro ao conferir se a categoria pai existe:", err)
+		logger.Error("Erro ao conferir se a categoria pai existe:", err)
 		return false, err
 	}
 
 	if exists {
-		logger.General.Info.Println("A categoria pai existe")
+		logger.Info("A categoria pai existe")
 		return true, nil
 	}
 
-	logger.General.Info.Println("A categoria pai não existe")
+	logger.Info("A categoria pai não existe")
 	return false, nil
 }
 
@@ -319,7 +319,7 @@ func (c *CategoryRepository) VerifyExistsCategoryName(ctx context.Context, categ
 	); err != nil {
 
 		if errors.Is(err, pgx.ErrNoRows) {
-			logger.General.Info.Println("A categoria não existe")
+			logger.Info("A categoria não existe")
 			return nil, nil
 
 		}

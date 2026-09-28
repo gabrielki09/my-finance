@@ -72,7 +72,7 @@ func (f *FinancialObligationController) GetAll(w http.ResponseWriter, r *http.Re
 }
 
 func (f *FinancialObligationController) Create(w http.ResponseWriter, r *http.Request) {
-	logger.General.Info.Println("FinancialObligationController - Create")
+	logger.Info("FinancialObligationController - Create")
 
 	var payload financialobligationrequest.FinancialObligationRequest
 
@@ -80,7 +80,7 @@ func (f *FinancialObligationController) Create(w http.ResponseWriter, r *http.Re
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&payload); err != nil {
-		logger.General.Error.Println("Erro:", err)
+		logger.Error("Erro:", err)
 
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",
@@ -123,7 +123,7 @@ func (f *FinancialObligationController) Update(w http.ResponseWriter, r *http.Re
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&payload); err != nil {
-		logger.General.Error.Println("Erro:", err)
+		logger.Error("Erro:", err)
 
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",
@@ -201,7 +201,7 @@ func (f *FinancialObligationController) PayFinancialObligation(w http.ResponseWr
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&payload); err != nil {
-		logger.General.Error.Println("Erro:", err)
+		logger.Error("Erro:", err)
 
 		response.WriteJSON(w, http.StatusBadRequest, response.ErrorResponse(
 			"Erro ao ler os dados",

@@ -37,7 +37,7 @@ func (f *FinancialAccountService) GetAll(ctx context.Context) ([]financialrespon
 	financialAccounts, err := f.repository.GetAll(ctx)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao consultar todas as conta financeiras:", err)
+		logger.Error("Erro ao consultar todas as conta financeiras:", err)
 		return nil, err
 	}
 
@@ -59,7 +59,7 @@ func (f *FinancialAccountService) Create(ctx context.Context, payload financiala
 	financialAccount, err := f.repository.Create(ctx, payload)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao criar a conta financeira:", err)
+		logger.Error("Erro ao criar a conta financeira:", err)
 		return financialresponse.FinancialAccountResponse{}, err
 	}
 
@@ -81,7 +81,7 @@ func (f *FinancialAccountService) Update(ctx context.Context, payload financiala
 	financialAccount, err := f.repository.Update(ctx, payload, financialAccountId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao alterar a conta financeira:", err)
+		logger.Error("Erro ao alterar a conta financeira:", err)
 		return financialresponse.FinancialAccountResponse{}, err
 	}
 
@@ -92,7 +92,7 @@ func (f *FinancialAccountService) FindById(ctx context.Context, financialAccount
 	financialAccount, err := f.repository.FindById(ctx, financialAccountId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao localizar a conta financeira:", err)
+		logger.Error("Erro ao localizar a conta financeira:", err)
 		return financialresponse.FinancialAccountResponse{}, err
 	}
 
@@ -101,7 +101,7 @@ func (f *FinancialAccountService) FindById(ctx context.Context, financialAccount
 
 func (f *FinancialAccountService) Delete(ctx context.Context, financialAccountId int) error {
 	if err := f.repository.Delete(ctx, financialAccountId); err != nil {
-		logger.General.Error.Println("Erro ao deletar a conta financeira:", err)
+		logger.Error("Erro ao deletar a conta financeira:", err)
 		return err
 	}
 
@@ -110,7 +110,7 @@ func (f *FinancialAccountService) Delete(ctx context.Context, financialAccountId
 
 func (f *FinancialAccountService) Active(ctx context.Context, financialAccountId int) error {
 	if err := f.repository.Active(ctx, financialAccountId); err != nil {
-		logger.General.Error.Println("Erro ao ativar a conta financeira:", err)
+		logger.Error("Erro ao ativar a conta financeira:", err)
 		return err
 	}
 
@@ -119,14 +119,14 @@ func (f *FinancialAccountService) Active(ctx context.Context, financialAccountId
 
 func (f *FinancialAccountService) GetCurrentBalance(ctx context.Context, financialAccountId int) (financialresponse.FinancialCurrentBalanceResponse, error) {
 	if _, err := f.FindById(ctx, financialAccountId); err != nil {
-		logger.General.Error.Println("Erro ao conferir se a conta financeira existe:", err)
+		logger.Error("Erro ao conferir se a conta financeira existe:", err)
 		return financialresponse.FinancialCurrentBalanceResponse{}, err
 	}
 
 	currentBalanceBody, err := f.repository.GetCurrentBalance(ctx, financialAccountId)
 
 	if err != nil {
-		logger.General.Error.Println("Erro ao consultar o saldo atual da conta financeira:", err)
+		logger.Error("Erro ao consultar o saldo atual da conta financeira:", err)
 		return financialresponse.FinancialCurrentBalanceResponse{}, err
 	}
 

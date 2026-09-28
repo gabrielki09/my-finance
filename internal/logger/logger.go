@@ -1,32 +1,34 @@
 package logger
 
 import (
-	"log"
 	"os"
+	"time"
+
+	"charm.land/log/v2"
 )
 
-type LoggerGroup struct {
-	General *log.Logger
-	Info    *log.Logger
-	Error   *log.Logger
-	Success *log.Logger
+var instance = log.NewWithOptions(os.Stderr, log.Options{
+	ReportCaller:    true,
+	ReportTimestamp: true,
+	TimeFormat:      time.Kitchen,
+})
+
+func Error(msg string, err error) {
+	instance.Helper()
+	instance.Error(msg, "err", err)
 }
 
-var General *LoggerGroup
-
-func Init() {
-	General = newLoggerGroup()
+func Info(msg string, data ...any) {
+	instance.Helper()
+	instance.Info(msg, data...)
 }
 
-func newLoggerGroup() *LoggerGroup {
-	return &LoggerGroup{
-		General: newLogger("General Logger:\t"),
-		Info:    newLogger("Info Logger:\t"),
-		Error:   newLogger("Error Logger:\t"),
-		Success: newLogger("Success Logger:\t"),
-	}
+func Fatal(msg string, data ...any) {
+	instance.Helper()
+	instance.Fatal(msg, data...)
 }
 
-func newLogger(prefix string) *log.Logger {
-	return log.New(os.Stdout, prefix, log.Ldate|log.Ltime|log.Lshortfile)
+func Debug(msg string, data ...any) {
+	instance.Helper()
+	instance.Debug(msg, data...)
 }

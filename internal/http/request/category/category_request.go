@@ -43,7 +43,7 @@ func validateType(t categorymodel.CategoryTpyes) bool {
 }
 
 func (c CategoryRequest) ValidatePayload() apperrors.ValidationErrors {
-	logger.General.Info.Println("---- Vai validar o payload inicial da categoria ----")
+	logger.Info("---- Vai validar o payload inicial da categoria ----")
 
 	errors := apperrors.ValidationErrors{}
 
@@ -68,6 +68,6 @@ func (c CategoryRequest) ValidatePayload() apperrors.ValidationErrors {
 		}
 	}
 
-	logger.General.Info.Printf("---- Terminou de validar o payload da categoria, total de erros: %d ----", len(errors))
+	logger.Info("---- Terminou de validar o payload da categoria, total de erros: %d ----", len(errors))
 	return errors
 }
