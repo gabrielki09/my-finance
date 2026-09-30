@@ -8,7 +8,7 @@ import (
 	"finance/internal/helpers/getidpath"
 	"finance/internal/helpers/response"
 	"finance/internal/http/httpx"
-	categoryrequest "finance/internal/http/request/category"
+	categoryrequest "finance/internal/http/request_v2/category"
 	categoryresponse "finance/internal/http/response/category"
 	"finance/internal/logger"
 	"net/http"

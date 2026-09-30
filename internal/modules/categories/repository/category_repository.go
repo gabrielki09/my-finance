@@ -6,7 +6,7 @@ import (
 	"finance/internal/apperrors"
 	constantsdbcode "finance/internal/constants/db"
 	transactionhelper "finance/internal/helpers/transaction"
-	categoryrequest "finance/internal/http/request/category"
+	categoryrequest "finance/internal/http/request_v2/category"
 	"finance/internal/logger"
 	categorymodel "finance/models/category"
 
@@ -270,18 +270,18 @@ func (c *CategoryRepository) VerifyParentId(ctx context.Context, parentId int) (
 		ctx,
 		`
 			SELECT EXISTS 
-				( 
-					SELECT
-						id 
-					FROM
-						categories 
-					WHERE 
-						id = $1
-					ORDER BY 
-						id
-					DESC 
-						LIMIT 1
-				)
+			( 
+				SELECT
+					id 
+				FROM
+					categories 
+				WHERE 
+					id = $1
+				ORDER BY 
+					id
+				DESC 
+					LIMIT 1
+			)
 		`,
 		parentId,
 	).Scan(&exists); err != nil {

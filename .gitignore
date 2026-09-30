@@ -1,7 +1,6 @@
 .env
 .env.local
 .ideia
-/internal/database/migration/sql
 /internal/routes/middleware
 /jsons
 .agents
