@@ -6,7 +6,7 @@ import (
 	"errors"
 	"finance/internal/apperrors"
 	"finance/internal/helpers/response"
-	financialtransferfiltersv1 "finance/internal/http/filter_V1/financial_transfer"
+	financialtransferfiltersv1 "finance/internal/http/filter_v1/financial_transfer"
 	"finance/internal/http/httpx"
 	financialresponse "finance/internal/http/response/financial"
 	"finance/internal/logger"

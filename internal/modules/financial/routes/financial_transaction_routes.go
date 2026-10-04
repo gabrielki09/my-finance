@@ -20,5 +20,4 @@ func RegisterFinancialTransactionRoutes(r *http.ServeMux, db *pgxpool.Pool) {
 	r.HandleFunc("GET /financial-transaction/key/{key}", controller.FindByKey)
 	r.HandleFunc("POST /financial-transaction", controller.CreateMovement)
 	r.HandleFunc("POST /financial-transaction/cancel", controller.CancelMovement)
-
 }

@@ -136,7 +136,7 @@ func (c *CategoryController) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
 		"Categoria alterada com sucesso!",
 		map[string]any{"category": category},
 	))

@@ -280,48 +280,6 @@ func (f *FinancialTransactionRepository) CreateMovement(ctx context.Context, pay
 				return err
 			}
 
-			// Quando o movement_type == entry for de entrada, o valora da conta financeira precisará pegar o valor atual + o valor informado
-			if financialTransaction.MovementType == "entry" {
-				if _, err := tx.Exec(
-					ctx,
-					`
-						UPDATE 
-							financial_accounts
-						SET
-							initial_balance = initial_balance + $2
-						WHERE
-							id = $1
-					`,
-					payload.FinancialAccountId,
-					payload.Amount,
-				); err != nil {
-					logger.Error("Erro ao alterar o agregar o valor da conta financeira:", err)
-
-					return err
-				}
-			}
-
-			// Quando o movement_type == exit for de saída, o valora da conta financeira precisará pegar o valor atual - o valor informado
-			if financialTransaction.MovementType == "exit" {
-				if _, err := tx.Exec(
-					ctx,
-					`
-						UPDATE 
-							financial_accounts
-						SET
-							initial_balance = initial_balance - $2
-						WHERE
-							id = $1
-					`,
-					payload.FinancialAccountId,
-					payload.Amount,
-				); err != nil {
-					logger.Error("Erro ao alterar o descontar o valor da conta financeira:", err)
-
-					return err
-				}
-			}
-
 			return nil
 		})
 
@@ -329,13 +287,6 @@ func (f *FinancialTransactionRepository) CreateMovement(ctx context.Context, pay
 }
 
 func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) (err error) {
-
-	isNotCanceled, err := f.CheckIsNotCanceled(ctx, payload)
-
-	if !isNotCanceled {
-		return fmt.Errorf("Transação já cancelada.")
-	}
-
 	err = transactionhelper.WithTransaction(
 		ctx,
 		f.db,
@@ -347,49 +298,7 @@ func (f *FinancialTransactionRepository) CancelMovement(ctx context.Context, pay
 
 			} else if (payload.IdempotencyKey) != nil {
 				financialTransaction, _ = f.FindByKey(ctx, *payload.IdempotencyKey)
-			}
 
-			if financialTransaction.MovementType == "entry" {
-				logger.Info("A operação que está sendo cancelada é uma operação de entrada, vai descontar o valor da conta financeira referenciada.")
-
-				if _, err := tx.Exec(
-					ctx,
-					`
-						UPDATE
-							financial_accounts
-						SET
-							initial_balance = initial_balance - $2
-						WHERE
-							id = $1
-					`,
-					financialTransaction.Id,
-					financialTransaction.Amount,
-				); err != nil {
-					logger.Error("Erro ao atualizar o saldo da conta financeira:", err)
-
-					return err
-				}
-			}
-
-			if financialTransaction.MovementType == "exit" {
-				logger.Info("A operação que está sendo cancelada é uma operação de saída, vai acrescentar o valor da conta financeira referenciada.")
-				if _, err := tx.Exec(
-					ctx,
-					`
-						UPDATE
-							financial_accounts
-						SET
-							initial_balance = initial_balance + $2
-						WHERE
-							id = $1
-					`,
-					financialTransaction.Id,
-					financialTransaction.Amount,
-				); err != nil {
-					logger.Error("Erro ao atualizar o saldo da conta financeira:", err)
-
-					return err
-				}
 			}
 
 			if _, err := tx.Exec(

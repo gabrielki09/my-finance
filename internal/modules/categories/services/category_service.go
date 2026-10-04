@@ -45,6 +45,7 @@ func (s *CategoryService) GetAll(ctx context.Context) ([]categoryresponse.Catego
 }
 
 func (s *CategoryService) Create(ctx context.Context, payload categoryrequest.CategoryRequest) (categoryresponse.CategoryResponse, error) {
+	payload.Repo = s.repository
 	validation := payload.ValidatePayload(ctx)
 
 	if len(validation) > 0 {
@@ -77,7 +78,9 @@ func (s *CategoryService) Create(ctx context.Context, payload categoryrequest.Ca
 
 func (s *CategoryService) Update(ctx context.Context, payload categoryrequest.CategoryRequest, categoryId int) (categoryresponse.CategoryResponse, error) {
 
+	payload.Repo = s.repository
 	payload.Id = categoryId
+
 	validation := payload.ValidatePayload(ctx)
 
 	if len(validation) > 0 {

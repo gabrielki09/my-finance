@@ -134,7 +134,7 @@ func (f *FinancialAccountController) Update(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	response.WriteJSON(w, http.StatusCreated, response.SuccessResponse(
+	response.WriteJSON(w, http.StatusOK, response.SuccessResponse(
 		"Conta financeira alterada com sucesso!",
 		map[string]any{"financial_account": financialAccount},
 	))

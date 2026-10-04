@@ -47,7 +47,7 @@ CREATE TABLE financial_obligations (
 );
 CREATE TYPE financial_transactions_movement_type AS ENUM('entry', 'exit');
 CREATE TYPE financial_transactions_operation_type AS ENUM('original', 'adjustment', 'reversal');
-CREATE TYPE financial_transactions_status AS ENUM('pedding');
+CREATE TYPE financial_transactions_status AS ENUM('confirmed', 'canceled');
 CREATE TABLE financial_transactions (
     id SERIAL PRIMARY KEY,   
     financial_account_id INTEGER NOT NULL REFERENCES financial_accounts(id),
@@ -56,12 +56,13 @@ CREATE TABLE financial_transactions (
     description VARCHAR(255) NOT NULL,
     movement_type financial_transactions_movement_type NOT NULL,
     operation_type financial_transactions_operation_type NOT NULL,
+    status financial_transactions_status NOT NULL DEFAULT 'confirmed',
     amount DECIMAL(14, 2) NOT NULL,
     movement_date TIMESTAMPTZ NOT NULL,
     reference_date DATE,
     origin_type VARCHAR(50) NULL,
     origin_id INTEGER NULL,
-    idempotency_key UUID DEFAULT gen_random_uuid(),
+    idempotency_key UUID DEFAULT gen_random_uuid() UNIQUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     canceled_at  TIMESTAMPTZ
 );
@@ -78,7 +79,7 @@ CREATE TABLE financial_transfer (
     transfer_date DATE,
     source_account_id INTEGER NOT NULL REFERENCES financial_accounts(id),
     destination_account_id INTEGER NOT NULL REFERENCES financial_accounts(id),
-    idempotency_key UUID DEFAULT gen_random_uuid(),
+    idempotency_key UUID DEFAULT gen_random_uuid() UNIQUE,
     amount DECIMAL(14, 2) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     canceled_at  TIMESTAMPTZ

@@ -9,6 +9,7 @@ import (
 	financialmapper "finance/internal/mapper/financial"
 	financialtransactionvalidator "finance/internal/modules/financial/validator"
 	financialmodel "finance/models/financial"
+	"fmt"
 )
 
 type FinancialTransactionRepository interface {
@@ -17,6 +18,8 @@ type FinancialTransactionRepository interface {
 	FindByKey(ctx context.Context, key string) (financialmodel.FinancialTransactionsModel, error)
 	CreateMovement(ctx context.Context, payload financialtransactionrequest.FinancialTransactionRequest) (financialmodel.FinancialTransactionsModel, error)
 	CancelMovement(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) error
+
+	CheckIsNotCanceled(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) (bool, error)
 }
 
 type FinancialTransactionService struct {
@@ -88,6 +91,15 @@ func (f *FinancialTransactionService) CreateMovement(ctx context.Context, payloa
 }
 
 func (f *FinancialTransactionService) CancelMovement(ctx context.Context, payload financialtransactionrequest.CancelFinancialTransactionRequest) error {
+
+	isNotCanceled, err := f.repository.CheckIsNotCanceled(ctx, payload)
+	if err != nil {
+		return err
+	}
+
+	if !isNotCanceled {
+		return fmt.Errorf("Transação já cancelada.")
+	}
 
 	return nil
 }

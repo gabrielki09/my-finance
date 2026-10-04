@@ -42,7 +42,7 @@ func loadApiConfig() (*ApiConfig, error) {
 	}, nil
 }
 
-func loadDbConfig() (*DatabaseConfig, error) {
+func LoadDbConfig() (*DatabaseConfig, error) {
 	dbHost, err := getEnvValue("DB_HOST")
 	if err != nil {
 		return nil, err
@@ -78,7 +78,7 @@ func loadDbConfig() (*DatabaseConfig, error) {
 }
 
 func LoadConfig() (*Config, error) {
-	dbConfig, err := loadDbConfig()
+	dbConfig, err := LoadDbConfig()
 	if err != nil {
 		return nil, err
 	}

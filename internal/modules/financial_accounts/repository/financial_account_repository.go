@@ -279,8 +279,8 @@ func (f *FinancialAccountRepository) VerifyExistsFinancialAccountName(ctx contex
 		`,
 		financialAccountName,
 	).Scan(
-		financialAccount.Id,
-		financialAccount.Name,
+		&financialAccount.Id,
+		&financialAccount.Name,
 	)
 
 	if err != nil {

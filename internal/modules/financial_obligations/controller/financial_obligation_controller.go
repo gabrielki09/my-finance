@@ -8,7 +8,7 @@ import (
 
 	"finance/internal/helpers/getidpath"
 	"finance/internal/helpers/response"
-	financialobligationfiltersv1 "finance/internal/http/filter_V1/financial_obligation"
+	financialobligationfiltersv1 "finance/internal/http/filter_v1/financial_obligation"
 	"finance/internal/http/httpx"
 	financialobligationrequest "finance/internal/http/request/financial/financial_obligation"
 	financialresponse "finance/internal/http/response/financial"
