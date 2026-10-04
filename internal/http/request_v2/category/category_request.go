@@ -20,7 +20,7 @@ type CategoryRequest struct {
 	ParentId *int                        `json:"parent_id" validate:"sometimes,numeric"`
 	Name     string                      `json:"name" validate:"required"`
 	Type     categorymodel.CategoryTpyes `json:"type" validate:"required"`
-	repo     CategoryRepository
+	Repo     CategoryRepository
 }
 
 func validateType(t categorymodel.CategoryTpyes) bool {
@@ -50,20 +50,6 @@ func (c CategoryRequest) ValidatePayload(ctx context.Context) apperrors.Validati
 		errors["name"] = append(errors["name"], fmt.Sprintf("O nome da categoria deve ter no máximo %d caracteres.", mxl.MAX_LEN_100))
 	}
 
-	categoryByName, err := c.repo.VerifyExistsCategoryName(ctx, c.Name)
-
-	if err != nil {
-		logger.Error("Erro ao conferir se a categoria já existe pelo nome: ", err)
-
-		errors["name"] = append(errors["name"], "Erro ao conferir se a categoria já existe pelo nome")
-		return errors
-	}
-
-	if categoryByName != nil {
-		errors["name"] = append(errors["name"], fmt.Sprintf("A categoria %s já existe, ID %d.", c.Name, categoryByName.Id))
-		return errors
-	}
-
 	if categoryType == "" {
 		errors["type"] = append(errors["type"], "O tipo da categoria é obrigatório.")
 	} else if !validateType(categoryType) {
@@ -77,7 +63,7 @@ func (c CategoryRequest) ValidatePayload(ctx context.Context) apperrors.Validati
 	}
 
 	if c.ParentId != nil {
-		exists, err := c.repo.VerifyParentId(ctx, *c.ParentId)
+		exists, err := c.Repo.VerifyParentId(ctx, *c.ParentId)
 
 		if err != nil {
 			errors["parent_id"] = append(errors["parent_id"], "O ID da categoria pai não pode ser o mesmo ID do registro.")

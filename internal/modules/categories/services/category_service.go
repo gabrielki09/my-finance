@@ -8,6 +8,7 @@ import (
 	"finance/internal/logger"
 	categorymapper "finance/internal/mapper/category"
 	categorymodel "finance/models/category"
+	"fmt"
 )
 
 type CategoryRepository interface {
@@ -17,6 +18,9 @@ type CategoryRepository interface {
 	FindById(r context.Context, categoryId int) (categorymodel.CategoryModel, error)
 	Delete(r context.Context, categoryId int) error
 	Active(r context.Context, categoryId int) error
+
+	VerifyParentId(ctx context.Context, parentId int) (bool, error)
+	VerifyExistsCategoryName(ctx context.Context, categoryName string) (*categorymodel.CategoryModel, error)
 }
 
 type CategoryService struct {
@@ -44,6 +48,20 @@ func (s *CategoryService) Create(ctx context.Context, payload categoryrequest.Ca
 	validation := payload.ValidatePayload(ctx)
 
 	if len(validation) > 0 {
+		return categoryresponse.CategoryResponse{}, apperrors.NewValidationError(validation)
+	}
+
+	categoryByName, err := s.repository.VerifyExistsCategoryName(ctx, payload.Name)
+
+	if err != nil {
+		logger.Error("Erro ao conferir se a categoria já existe pelo nome: ", err)
+
+		validation["name"] = append(validation["name"], "Erro ao conferir se a categoria já existe pelo nome")
+		return categoryresponse.CategoryResponse{}, apperrors.NewValidationError(validation)
+	}
+
+	if categoryByName != nil {
+		validation["name"] = append(validation["name"], fmt.Sprintf("A categoria %s já existe, ID %d.", payload.Name, categoryByName.Id))
 		return categoryresponse.CategoryResponse{}, apperrors.NewValidationError(validation)
 	}
 
