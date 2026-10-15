@@ -1,0 +1,25 @@
+Ordem;Epico;Card;Prioridade;Descricao
+1;Infraestrutura;Criar projeto Go;Alta;Inicializar projeto, pastas, go.mod e servidor base
+2;Infraestrutura;Subir PostgreSQL no Docker;Alta;Criar compose com Postgres local e volume
+3;Infraestrutura;Padronizar respostas JSON;Alta;Criar padrão de sucesso, erro e validação
+4;Contas financeiras;Cadastrar conta financeira;Alta;Permitir criar conta com tipo e saldo inicial
+5;Contas financeiras;Listar contas financeiras;Alta;Listar contas ativas/inativas
+6;Contas financeiras;Consultar saldo por conta;Alta;Calcular saldo com base em saldo inicial e movimentações
+7;Categorias;Cadastrar categoria;Alta;Criar categorias de income, expense e both
+8;Categorias;Criar hierarquia de categorias;Alta;Permitir parent_id com validações
+9;Categorias;Desativar categoria em cascata;Alta;Desativar pai e filhas sem alterar histórico
+10;Movimentações;Registrar entrada avulsa;Alta;Criar movimentação de entrada
+11;Movimentações;Registrar saída avulsa;Alta;Criar movimentação de saída
+12;Movimentações;Listar extrato;Alta;Consultar movimentações por filtros
+13;Obrigações;Cadastrar conta a pagar;Alta;Criar obrigação payable pendente
+14;Obrigações;Cadastrar conta a receber;Alta;Criar obrigação receivable pendente
+15;Obrigações;Listar vencidas;Alta;Identificar vencidas por data e status
+16;Liquidações;Pagar conta a pagar;Alta;Criar saída e liquidação
+17;Liquidações;Receber conta a receber;Alta;Criar entrada e liquidação
+18;Liquidações;Pagamento parcial;Alta;Atualizar status para partially_settled
+19;Transferências;Transferir entre contas;Média;Criar saída na origem e entrada no destino
+20;Estornos;Estornar movimentação;Alta;Criar movimentação inversa
+21;Estornos;Estornar liquidação;Alta;Cancelar liquidação e recalcular obrigação
+22;Dashboard;Resumo financeiro;Média;Saldo total, entradas, saídas e resultado
+23;Dashboard;Gastos por categoria;Média;Agrupar saídas por categoria
+24;Relatórios;Extrato por período;Baixa;Relatório básico por conta e período

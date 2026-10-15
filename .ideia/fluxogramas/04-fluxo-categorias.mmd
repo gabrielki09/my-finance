@@ -1,0 +1,12 @@
+flowchart TD
+    A[Cadastrar categoria] --> B[Informar nome]
+    B --> C[Informar tipo]
+    C --> D{Tem categoria pai?}
+    D -->|Não| H[Validar dados]
+    D -->|Sim| E[Buscar categoria pai]
+    E --> F{Pai existe e está ativo?}
+    F -->|Não| G[Retornar erro]
+    F -->|Sim| H[Validar compatibilidade de tipo]
+    H --> I{Categoria válida?}
+    I -->|Não| J[Retornar erro]
+    I -->|Sim| K[Salvar categoria]

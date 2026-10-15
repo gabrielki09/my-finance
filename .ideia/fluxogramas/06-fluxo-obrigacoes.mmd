@@ -1,0 +1,12 @@
+flowchart TD
+    A[Cadastrar obrigação] --> B{Pagar ou receber?}
+    B -->|Pagar| C[Tipo payable]
+    B -->|Receber| D[Tipo receivable]
+    C --> E[Informar categoria]
+    D --> E
+    E --> F[Informar descrição e valor]
+    F --> G[Informar vencimento]
+    G --> H{Dados válidos?}
+    H -->|Não| I[Retornar erro]
+    H -->|Sim| J[Salvar como pending]
+    J --> K[Não altera saldo ainda]

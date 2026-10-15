@@ -1,0 +1,13 @@
+flowchart TD
+    A[Solicitar estorno] --> B[Buscar movimentação original]
+    B --> C{Existe e não está cancelada?}
+    C -->|Não| D[Retornar erro]
+    C -->|Sim| E{Já possui estorno?}
+    E -->|Sim| F[Retornar erro]
+    E -->|Não| G[Definir movimento inverso]
+    G --> H[Criar transação reversal]
+    H --> I[Marcar original cancelada ou vinculada]
+    I --> J{Origem era liquidação?}
+    J -->|Sim| K[Cancelar liquidação e recalcular obrigação]
+    J -->|Não| L[Finalizar]
+    K --> L

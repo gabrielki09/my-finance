@@ -1,0 +1,12 @@
+flowchart TD
+    A[Registrar movimentação avulsa] --> B{Entrada ou saída?}
+    B -->|Entrada| C[Validar categoria de receita]
+    B -->|Saída| D[Validar categoria de despesa]
+    C --> E[Validar conta financeira ativa]
+    D --> E
+    E --> F[Validar valor maior que zero]
+    F --> G[Validar idempotência]
+    G --> H{Dados válidos?}
+    H -->|Não| I[Retornar erro]
+    H -->|Sim| J[Salvar movimentação]
+    J --> K[Atualizar saldo calculado]

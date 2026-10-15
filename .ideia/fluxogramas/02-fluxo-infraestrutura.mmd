@@ -1,0 +1,8 @@
+flowchart TD
+    A[Criar projeto Go] --> B[Criar compose do PostgreSQL]
+    B --> C[Criar scripts SQL iniciais]
+    C --> D[Configurar conexão com banco]
+    D --> E[Criar servidor net/http]
+    E --> F[Criar GET /health]
+    F --> G[Padronizar respostas JSON]
+    G --> H[Padronizar erros de decode e validação]

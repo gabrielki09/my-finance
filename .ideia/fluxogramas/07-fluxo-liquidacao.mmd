@@ -1,0 +1,16 @@
+flowchart TD
+    A[Liquidar obrigação] --> B[Buscar obrigação com lock]
+    B --> C{Obrigação ativa?}
+    C -->|Não| D[Retornar erro]
+    C -->|Sim| E[Calcular saldo pendente]
+    E --> F{Valor <= pendente?}
+    F -->|Não| G[Retornar erro]
+    F -->|Sim| H{Tipo da obrigação}
+    H -->|Payable| I[Criar movimentação de saída]
+    H -->|Receivable| J[Criar movimentação de entrada]
+    I --> K[Criar liquidação]
+    J --> K
+    K --> L[Recalcular status]
+    L --> M{Total liquidado?}
+    M -->|Parcial| N[Status partially_settled]
+    M -->|Total| O[Status settled]

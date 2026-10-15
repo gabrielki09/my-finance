@@ -1,0 +1,13 @@
+flowchart TD
+    A[Transferir entre contas] --> B[Selecionar conta origem]
+    B --> C[Selecionar conta destino]
+    C --> D{Origem diferente do destino?}
+    D -->|Não| E[Retornar erro]
+    D -->|Sim| F[Informar valor]
+    F --> G[Validar contas ativas]
+    G --> H[Validar idempotência]
+    H --> I[Iniciar transação de banco]
+    I --> J[Criar saída na origem]
+    J --> K[Criar entrada no destino]
+    K --> L[Salvar transferência]
+    L --> M[Confirmar transação]

@@ -1,0 +1,9 @@
+flowchart TD
+    A[Cadastrar conta financeira] --> B[Informar nome]
+    B --> C[Informar tipo]
+    C --> D[Informar saldo inicial]
+    D --> E{Dados válidos?}
+    E -->|Não| F[Retornar erro de validação]
+    E -->|Sim| G[Salvar conta]
+    G --> H[Conta disponível para movimentações]
+    H --> I[Saldo inicial vira base de cálculo]
